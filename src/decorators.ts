@@ -32,7 +32,8 @@ function createMethodDecorator(instrument: Function) {
       const { value: targetFunction } = descriptor;
       const enrichedPayload = {
         ...payload,
-        instrument: propertyKey
+        instrument: instrument.name,
+        target: propertyKey
       };
       descriptor.value = instrument(createCollector(enrichedPayload), targetFunction);
       return descriptor;

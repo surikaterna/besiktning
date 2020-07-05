@@ -10,7 +10,8 @@ export interface InstrumentPayload {
 }
 
 export interface MeasurementPayload extends InstrumentPayload {
-  instrument: DynamicString;
+  instrument: string;
+  target: string;
   value: FieldValue;
 }
 
