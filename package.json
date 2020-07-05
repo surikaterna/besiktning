@@ -1,0 +1,27 @@
+{
+  "name": "",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "clean": "rm -r dist/",
+    "compile": "tsc --declaration",
+    "compile.watch": "tsc --declaration --watch --noEmit",
+    "test": "mocha",
+    "test.watch": "mocha --watch"
+  },
+  "author": "",
+  "license": "",
+  "dependencies": {},
+  "devDependencies": {
+    "@types/chai": "^4.2.11",
+    "@types/mocha": "^7.0.2",
+    "@types/node": "^14.0.14",
+    "chai": "^4.2.0",
+    "mocha": "^8.0.1",
+    "ts-node": "^8.10.2",
+    "tsconfig-paths": "^3.9.0",
+    "typescript": "^3.9.6"
+  }
+}
