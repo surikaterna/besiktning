@@ -1,5 +1,5 @@
 import meter from '@/instruments/meter';
-import exceptionMeter from '@/instruments/exception-meter';
+import exceptionMeter from '@/instruments/exceptionMeter';
 import gauge from '@/instruments/gauge';
 import timer from '@/instruments/timer';
 import {
