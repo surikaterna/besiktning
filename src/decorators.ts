@@ -20,7 +20,7 @@ function createCollector(payload: CollectorPayload): FieldCollector {
       self._collect.call(self, {
         ...payload,
         key: typeof key === 'function' ? key.call(self) : key,
-        value: payload.endomorphism?.call(self, value) ?? value
+        value: payload.apply?.call(self, value) ?? value
       });
     }
   };

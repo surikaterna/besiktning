@@ -36,7 +36,7 @@ describe('@Gauged', function () {
       @Gauged({
         measurement: 'gauged',
         key: 'string',
-        endomorphism: value => `${value}_${index++}`
+        apply: value => `${value}_${index++}`
       })
       echoIndexed(msg: string): string {
         return msg;

@@ -40,7 +40,7 @@ describe('@ExceptionMetered', function () {
       @ExceptionMetered({
         measurement: 'exception_metered',
         key: 'exception',
-        endomorphism: value => 1
+        apply: value => 1
       })
       throwExceptionIfTrue(bool: boolean): void {
         if (bool) {
@@ -71,7 +71,7 @@ describe('@ExceptionMetered', function () {
       @ExceptionMetered({
         measurement: 'exception_metered',
         key: 'exception',
-        endomorphism: value => 1
+        apply: value => 1
       })
       throwException(msg: string): never {
         throw new Error(msg);

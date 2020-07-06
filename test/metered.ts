@@ -65,7 +65,7 @@ describe('@Metered', function () {
       @Metered({
         measurement: 'geometric_progression',
         key: () => `iteration_${nextIndex++}`,
-        endomorphism: value => nextValue
+        apply: value => nextValue
       })
       noop(): void {}
       noopIgnored(): void {}

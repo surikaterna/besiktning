@@ -6,7 +6,7 @@ export interface InstrumentPayload {
   measurement: DynamicString;
   key: DynamicString;
   tags?: { [key: string]: DynamicString };
-  endomorphism?: (value: FieldValue) => FieldValue;
+  apply?: (value: FieldValue) => FieldValue;
 }
 
 export interface MeasurementPayload extends InstrumentPayload {
