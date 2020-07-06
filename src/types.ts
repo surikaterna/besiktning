@@ -1,11 +1,11 @@
-export type DynamicString = NonNullable<string> | (() => NonNullable<string>);
+export type Dynamic<T> = NonNullable<T> | ((payload?: Partial<MeasurementPayload>) => NonNullable<T>);
 
 export type FieldValue = NonNullable<number | bigint | string | boolean>;
 
 export interface InstrumentPayload {
-  measurement: DynamicString;
-  key: DynamicString;
-  tags?: { [key: string]: DynamicString };
+  measurement: Dynamic<string>;
+  key: Dynamic<string>;
+  tags?: { [key: string]: Dynamic<string> };
   apply?: (value: FieldValue) => FieldValue;
 }
 
