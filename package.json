@@ -8,8 +8,8 @@
     "clean": "rm -r dist/",
     "compile": "tsc --declaration",
     "compile.watch": "tsc --declaration --watch --noEmit",
-    "test": "mocha",
-    "test.watch": "mocha --watch"
+    "test": "cross-env TS_NODE_FILES=true mocha",
+    "test.watch": "cross-env TS_NODE_FILES=true mocha --watch"
   },
   "author": "",
   "license": "",
@@ -19,6 +19,7 @@
     "@types/mocha": "^7.0.2",
     "@types/node": "^14.0.14",
     "chai": "^4.2.0",
+    "cross-env": "^7.0.2",
     "mocha": "^8.0.1",
     "ts-node": "^8.10.2",
     "tsconfig-paths": "^3.9.0",

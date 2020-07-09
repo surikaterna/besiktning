@@ -1,55 +1,42 @@
+import { CollectorPayload, DecoratorPayload, FieldCollector, Instrument } from '@/types';
+import Collector from '@/Collector';
 import meter from '@/instruments/meter';
 import exceptionMeter from '@/instruments/exceptionMeter';
 import gauge from '@/instruments/gauge';
 import timer from '@/instruments/timer';
-import {
-  InstrumentPayload,
-  MeasurementPayload,
-  MeasurementCollector,
-  CollectorPayload,
-  FieldCollector,
-  FieldValue
-} from '@/types';
 
-function createCollector(payload: CollectorPayload): FieldCollector {
-  return function (self: any, value: FieldValue): void {
-    // FIXME: Find a way to make `this` work here; caller should not have to explicitly provide `this`: bind `this` to the function.
-    if (self?.hasOwnProperty('_collect')) {
-      const { key } = payload;
-      // TODO: Improve: Dynamically evaluate all DynamicString values, not just `key`.
-      self._collect.call(self, {
-        ...payload,
-        key: typeof key === 'function' ? key.call(self) : key,
-        value: payload.apply?.call(self, value) ?? value
-      });
-    }
+function withCollector(instrument: Instrument) {
+  return function (func: Function, payload: CollectorPayload) {
+    return function (this: any, ...args: any[]) {
+      const collect: FieldCollector = value => Collector.get()?.call(this, { ...payload, value });
+      if (typeof collect !== 'function') {
+        // TODO: Throw error? Log error? Resume silently?
+        return func(...args);
+      }
+      return instrument(collect, () => func(...args));
+    };
   };
 }
 
-function createMethodDecorator(instrument: Function) {
-  return function (payload: InstrumentPayload) {
-    return function (target: any, propertyKey: string, descriptor: PropertyDescriptor): PropertyDescriptor {
-      const { value: targetFunction } = descriptor;
-      const enrichedPayload = {
+function createDecorator(instrument: Instrument) {
+  return function (payload: DecoratorPayload) {
+    return function (target: any, propertyKey?: string, descriptor?: TypedPropertyDescriptor<any>): any {
+      const collectorPayload = {
         ...payload,
         instrument: instrument.name,
-        target: propertyKey
+        target: propertyKey ?? target?.name ?? ''
       };
-      descriptor.value = instrument(createCollector(enrichedPayload), targetFunction);
-      return descriptor;
+      if (!descriptor) {
+        return withCollector(instrument)(target as Function, collectorPayload);
+      }
+      const { value: targetFunction } = descriptor;
+      descriptor.value = withCollector(instrument)(targetFunction, collectorPayload);
+      return descriptor as TypedPropertyDescriptor<any>;
     };
   };
 }
 
-export function Measured(collect: MeasurementCollector) {
-  return function <T extends { new(...constructorArgs: any[]): {} }>(constructor: T) {
-    return class extends constructor {
-      _collect: MeasurementCollector = collect;
-    };
-  };
-}
-
-export const Metered = createMethodDecorator(meter);
-export const ExceptionMetered = createMethodDecorator(exceptionMeter);
-export const Gauged = createMethodDecorator(gauge);
-export const Timed = createMethodDecorator(timer);
+export const withMeter = createDecorator(meter);
+export const withExceptionMeter = createDecorator(exceptionMeter);
+export const withGauge = createDecorator(gauge);
+export const withTimer = createDecorator(timer);
