@@ -1,5 +1,7 @@
+import { MeasurementCollector } from '@/types';
+
 interface Besiktning {
-  collect: MeasurementCollector;
+  collect: MeasurementCollector | undefined;
 }
 
 declare global {
