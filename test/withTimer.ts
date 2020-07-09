@@ -8,10 +8,11 @@ const ERROR_MARGIN = 20;
 let measuredTime = 0;
 
 describe('@withTimer', function () {
-
   before(function () {
-    Collector.set(({ value }) => { measuredTime += Number(value) / 10 ** 6; });
-  })
+    Collector.set(({ value }) => {
+      measuredTime += Number(value) / 10 ** 6;
+    });
+  });
 
   beforeEach(function () {
     measuredTime = 0;
@@ -31,10 +32,7 @@ describe('@withTimer', function () {
     const expectedTime = 1000;
     this.timeout(0);
     await test.wait(1000);
-    measuredTime.should.be
-      .above(expectedTime - ERROR_MARGIN)
-      .and
-      .below(expectedTime + ERROR_MARGIN);
+    measuredTime.should.be.above(expectedTime - ERROR_MARGIN).and.below(expectedTime + ERROR_MARGIN);
   });
 
   it('should time a synchronous method', function () {
@@ -45,17 +43,14 @@ describe('@withTimer', function () {
       })
       wait(ms: number) {
         const start = Date.now();
-        while (Date.now() < start + ms) { }
+        while (Date.now() < start + ms) {}
       }
     }
     const test = new Test();
     const expectedTime = 2000;
     this.timeout(0);
     test.wait(expectedTime);
-    measuredTime.should.be
-      .above(expectedTime - ERROR_MARGIN)
-      .and
-      .below(expectedTime + ERROR_MARGIN);
+    measuredTime.should.be.above(expectedTime - ERROR_MARGIN).and.below(expectedTime + ERROR_MARGIN);
   });
 
   it('should time a method in a `Promise` chain', async function () {
@@ -66,11 +61,11 @@ describe('@withTimer', function () {
       })
       timedWait(ms: number) {
         const start = Date.now();
-        while (Date.now() < start + ms) { }
+        while (Date.now() < start + ms) {}
       }
       waitSync(ms: number) {
         const start = Date.now();
-        while (Date.now() < start + ms) { }
+        while (Date.now() < start + ms) {}
       }
     }
     const test = new Test();
@@ -82,10 +77,7 @@ describe('@withTimer', function () {
       .then(() => test.waitSync(expectedTime - 100))
       .then(() => test.timedWait(expectedTime))
       .then(() => test.waitSync(expectedTime - 200));
-    measuredTime.should.be
-      .above(2 * expectedTime - ERROR_MARGIN)
-      .and
-      .below(2 * expectedTime + ERROR_MARGIN);
+    measuredTime.should.be.above(2 * expectedTime - ERROR_MARGIN).and.below(2 * expectedTime + ERROR_MARGIN);
   });
 
   it('should work with synchronous functions', function () {
@@ -94,14 +86,11 @@ describe('@withTimer', function () {
       key: 'anon_interval'
     })((ms: number) => {
       const start = Date.now();
-      while (Date.now() < start + ms) { }
+      while (Date.now() < start + ms) {}
     });
     const expectedTime = 1000;
     timedWait(expectedTime);
-    measuredTime.should.be
-      .above(expectedTime - ERROR_MARGIN)
-      .and
-      .below(expectedTime + ERROR_MARGIN);
+    measuredTime.should.be.above(expectedTime - ERROR_MARGIN).and.below(expectedTime + ERROR_MARGIN);
   });
 
   it('should work with asynchronous functions', async function () {
@@ -112,9 +101,6 @@ describe('@withTimer', function () {
     this.timeout(0);
     const intervals = await Promise.all([wait(1000), wait(2000), wait(3000)]);
     const expectedTime = intervals.reduce((sum: number, interval: number) => sum + interval, 0);
-    measuredTime.should.be
-      .above(expectedTime - ERROR_MARGIN)
-      .and
-      .below(expectedTime + ERROR_MARGIN);
+    measuredTime.should.be.above(expectedTime - ERROR_MARGIN).and.below(expectedTime + ERROR_MARGIN);
   });
 });

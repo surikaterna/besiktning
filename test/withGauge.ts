@@ -7,14 +7,13 @@ const should = chai.should();
 let gaugedValues: Array<FieldValue | Promise<FieldValue>> = [];
 
 describe('@withGauge', function () {
-
   before(function () {
     Collector.set(({ value }) => gaugedValues.push(value));
-  })
+  });
 
   beforeEach(function () {
     gaugedValues = [];
-  })
+  });
 
   it('should collect `Promise`-wrapped return values', async function () {
     class Test {
@@ -31,8 +30,8 @@ describe('@withGauge', function () {
     const promises = [
       [1, 2],
       [2, 3],
-      [3, 4],
-    ].map((args) => test.add(...args as [number, number]));
+      [3, 4]
+    ].map(args => test.add(...(args as [number, number])));
     await Promise.all(promises);
     const sum = (gaugedValues as number[]).reduce((sum: number, num: number) => sum + num, 0);
     sum.should.be.equal(expectedSum);
@@ -52,7 +51,7 @@ describe('@withGauge', function () {
       ignore(msg: string): void {}
       @withGauge({
         measurement: 'with_gauge',
-        key: 'some_other_string',
+        key: 'some_other_string'
       })
       echo(msg: string): string {
         return msg;
@@ -77,7 +76,7 @@ describe('@withGauge', function () {
     const gaugedAdder = withGauge({
       measurement: 'with_gauge',
       key: 'number'
-    })((a: number, b:number): number => a + b);
+    })((a: number, b: number): number => a + b);
     const expectedNumbers = [];
     expectedNumbers.push(gaugedAdder(1, 1));
     expectedNumbers.push(gaugedAdder(2, 2));
@@ -89,7 +88,7 @@ describe('@withGauge', function () {
     const gaugedAdder = withGauge({
       measurement: 'with_gauge',
       key: 'number'
-    })((a: number, b:number): Promise<number> => new Promise(resolve => setTimeout(() => resolve(a + b), 1000 + a + b)));
+    })((a: number, b: number): Promise<number> => new Promise(resolve => setTimeout(() => resolve(a + b), 1000 + a + b)));
     const expectedNumbers = [];
     this.timeout(0);
     expectedNumbers.push(gaugedAdder(1, 1));

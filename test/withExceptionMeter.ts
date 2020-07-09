@@ -8,13 +8,13 @@ const should = chai.should();
 let exceptionMarks: FieldValue[] = [];
 
 describe('@withExceptionMeter', function () {
-  before(function() {
+  before(function () {
     Collector.set(({ value }) => exceptionMarks.push(value));
   });
 
-  beforeEach(function() {
+  beforeEach(function () {
     exceptionMarks = [];
-  })
+  });
 
   it('should count number of rejected `Promise`s', async function () {
     class Test {
@@ -81,12 +81,12 @@ describe('@withExceptionMeter', function () {
     const test = new Test();
     await Promise.resolve()
       .then(() => test.throwException('Test1'))
-      .then(() => { })
+      .then(() => {})
       .catch(err => messages.push(err.message))
       .then(() => messages.push('Not an error'))
       .then(() => test.throwException('Test2'))
-      .then(() => { })
-      .then(() => { })
+      .then(() => {})
+      .then(() => {})
       .catch(err => messages.push(err.message));
     [exceptionMarks.length, ...messages].should.be.eql([2, 'Test1', 'Not an error', 'Test2']);
   });

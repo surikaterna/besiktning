@@ -7,11 +7,12 @@ const should = chai.should();
 let meter = 0;
 
 describe('@withMeter', function () {
-
-  beforeEach(function() {
-    Collector.set(() => { meter++; });
+  beforeEach(function () {
+    Collector.set(() => {
+      meter++;
+    });
     meter = 0;
-  })
+  });
 
   it('should count number of method invocations', async function () {
     class Test {
@@ -28,7 +29,7 @@ describe('@withMeter', function () {
     }
     const test = new Test();
     const expectedInvocationCount = 3;
-    const promises = [0, 1, 2, 3, 4, 5].map((num: number) => num % 2 === 0 ? test.ignoredNoop() : test.meteredNoop());
+    const promises = [0, 1, 2, 3, 4, 5].map((num: number) => (num % 2 === 0 ? test.ignoredNoop() : test.meteredNoop()));
     await Promise.all(promises);
     meter.should.be.equal(expectedInvocationCount);
   });
@@ -59,7 +60,9 @@ describe('@withMeter', function () {
 
   it('should count number of method invocations synchronously', function () {
     let [nextIndex, nextValue]: [number, number] = [0, 1];
-    Collector.set(({ value: count }) => { nextValue += count as number; });
+    Collector.set(({ value: count }) => {
+      nextValue += count as number;
+    });
     class Test {
       @withMeter({
         measurement: 'geometric_progression',
@@ -88,7 +91,9 @@ describe('@withMeter', function () {
     const meteredCounter = withMeter({
       measurement: 'with_meter',
       key: 'count'
-    })(() => { expectedCount++; });
+    })(() => {
+      expectedCount++;
+    });
     meteredCounter();
     meteredCounter();
     meteredCounter();
