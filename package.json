@@ -4,10 +4,12 @@
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "prettier": "prettier-config-surikaterna",
   "scripts": {
     "clean": "rm -r dist/",
     "compile": "tsc --declaration",
     "compile.watch": "tsc --declaration --watch --noEmit",
+    "prettier": "prettier --write '{src,test}/**/*.ts'",
     "test": "cross-env TS_NODE_FILES=true mocha",
     "test.watch": "cross-env TS_NODE_FILES=true mocha --watch"
   },
@@ -21,6 +23,8 @@
     "chai": "^4.2.0",
     "cross-env": "^7.0.2",
     "mocha": "^8.0.1",
+    "prettier": "^2.0.5",
+    "prettier-config-surikaterna": "^1.0.0",
     "ts-node": "^8.10.2",
     "tsconfig-paths": "^3.9.0",
     "typescript": "^3.9.6"
