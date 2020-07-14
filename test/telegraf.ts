@@ -8,7 +8,7 @@ const should = chai.should();
 function wait(s: number): void {
   const ms = s * 1000;
   const start = Date.now();
-  while (Date.now() < start + ms) { }
+  while (Date.now() < start + ms) {}
 }
 
 function sum(a: number, b: number): number {
@@ -23,24 +23,18 @@ describe('Telegraf integration', function () {
 
     it('should send data to Telegraf', function () {
       const gaugedAdder = withGauge({ measurement: 'besiktning', key: 'sum', tags: { tag: 'tag_value' } })(sum);
+      this.timeout(0);
       gaugedAdder(1, 2);
+      wait(1);
+      gaugedAdder(2, 3);
+      wait(1);
+      gaugedAdder(3, 4);
     });
   });
 
   describe('getInfluxLine', function () {
-    it('should correctly transform payload without tags and timestamp', function () {
-      const payload: TelegrafPayload = {
-        measurement: 'test',
-        key: 'key',
-        value: 'value'
-      };
-      const influxLine = getInfluxLine(payload);
-      const expected = 'test key=value';
-      influxLine.should.equal(expected);
-    });
-
     it('should correctly transform payload without tags', function () {
-      const timestamp: bigint = process.hrtime.bigint();
+      const timestamp = `${Date.now()}000000`;
       const payload: TelegrafPayload = {
         measurement: 'test',
         key: 'key',
@@ -52,23 +46,8 @@ describe('Telegraf integration', function () {
       influxLine.should.equal(expected);
     });
 
-    it('should correctly transform payload without timestamp', function () {
-      const payload: TelegrafPayload = {
-        measurement: 'test',
-        key: 'key',
-        value: 'value',
-        tags: {
-          first: 'one',
-          second: 'two'
-        }
-      };
-      const influxLine = getInfluxLine(payload);
-      const expected = 'test,first=one,second=two key=value';
-      influxLine.should.equal(expected);
-    });
-
     it('should correctly transform payload', function () {
-      const timestamp: bigint = process.hrtime.bigint();
+      const timestamp = `${Date.now()}000000`;
       const payload: TelegrafPayload = {
         measurement: 'test',
         key: 'key',
@@ -85,13 +64,15 @@ describe('Telegraf integration', function () {
     });
 
     it('should not escape blank characters (caller must do it)', function () {
+      const timestamp = `${Date.now()}000000`;
       const payload: TelegrafPayload = {
         measurement: 'test with blanks',
         key: 'key',
-        value: 'v a l u e'
+        value: 'v a l u e',
+        timestamp
       };
       const influxLine = getInfluxLine(payload);
-      const expected = 'test with blanks key=v a l u e';
+      const expected = `test with blanks key=v a l u e ${timestamp}`;
       influxLine.should.equal(expected);
     });
   });

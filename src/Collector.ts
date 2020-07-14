@@ -1,13 +1,14 @@
 import { MeasurementPayload, MeasurementCollector } from './types';
 
-if (!global.__besiktning) {
-  global.__besiktning = {
-    collect: undefined
-  };
-}
-
-// TODO: Batch measurements in `Collector`?
 export default class Collector {
+  static initialize() {
+    if (!global.__besiktning) {
+      global.__besiktning = {
+        collect: undefined
+      };
+    }
+  }
+
   static set(collect: MeasurementCollector): void {
     global.__besiktning.collect = (payload: MeasurementPayload): void => {
       try {
@@ -22,3 +23,5 @@ export default class Collector {
     return global.__besiktning.collect;
   }
 }
+
+Collector.initialize();

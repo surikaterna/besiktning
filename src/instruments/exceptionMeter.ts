@@ -10,7 +10,7 @@ export default function exceptionMeter(collect: FieldCollector, func: Function) 
         (result: any) => result,
         (err: any): never => {
           try {
-            collect(process.hrtime.bigint());
+            collect(Date.now());
           } finally {
             throw err;
           }
@@ -21,7 +21,7 @@ export default function exceptionMeter(collect: FieldCollector, func: Function) 
   } catch (err) {
     if (!isThenable(result)) {
       try {
-        collect(process.hrtime.bigint());
+        collect(Date.now());
       } finally {
         throw err;
       }
