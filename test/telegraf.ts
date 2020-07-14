@@ -1,3 +1,5 @@
+import dgram from 'dgram';
+import sinon from 'sinon';
 import chai from 'chai';
 import Collector from '../src/Collector';
 import telegraf, { getInfluxLine, TelegrafPayload, parseUri } from '../src/collectors/telegraf';
@@ -15,38 +17,77 @@ function sum(a: number, b: number): number {
   return a + b;
 }
 
+let linesSentToMockSocket: string[] = [];
+
 describe('Telegraf integration', function () {
   describe('telegraf', function () {
     before(function () {
+      sinon.replace(
+        dgram.Socket.prototype,
+        'send',
+        sinon.fake(function (lines: string[], port: number, hostname: string, callback: Function) {
+          linesSentToMockSocket.push(...lines);
+          callback(null);
+        })
+      );
       Collector.set(telegraf);
     });
 
-    it('should send data to Telegraf', function () {
-      const gaugedAdder = withGauge({ measurement: 'besiktning', key: 'sum', tags: { tag: 'tag_value' } })(sum);
+    beforeEach(function () {
+      linesSentToMockSocket = [];
+    });
+
+    it('should send data to UDP socket', function () {
+      const gaugedAdder = withGauge({ measurement: 'besiktning', key: 'sum', tags: { tag1: 'tag_value1', tag2: 'tag_value2' } })(sum);
       this.timeout(0);
       gaugedAdder(1, 2);
       wait(1);
       gaugedAdder(2, 3);
       wait(1);
       gaugedAdder(3, 4);
+      const sums = [3, 5, 7];
+      sums.forEach((sum, i) => {
+        const line = linesSentToMockSocket[i];
+        const lineRegExp = new RegExp(`^besiktning,tag1=tag_value1,tag2=tag_value2 sum=${sum} [0-9]{19}\n$`);
+        line.should.match(lineRegExp);
+      });
+    });
+
+    it('should buffer data', function () {
+      const gaugedAdder = withGauge({ measurement: 'besiktning', key: 'sum', tags: { tag1: 'tag_value1', tag2: 'tag_value2' } })(sum);
+      gaugedAdder(1, 2);
+      wait(1);
+      gaugedAdder(2, 3);
+      linesSentToMockSocket.should.be.empty;
     });
   });
 
   describe('getInfluxLine', function () {
-    it('should correctly transform payload without tags', function () {
+    it('should transform payload without tags', function () {
       const timestamp = `${Date.now()}000000`;
       const payload: TelegrafPayload = {
         measurement: 'test',
         key: 'key',
-        value: 'value',
+        value: true,
         timestamp
       };
       const influxLine = getInfluxLine(payload);
-      const expected = `test key=value ${timestamp}`;
+      const expected = `test key=true ${timestamp}\n`;
       influxLine.should.equal(expected);
     });
 
-    it('should correctly transform payload', function () {
+    it('should transform payload without tags and timestamp', function () {
+      const payload: TelegrafPayload = {
+        measurement: 'test',
+        key: 'key',
+        value: 42
+      };
+      const influxLine = getInfluxLine(payload);
+      const expected = /^test key=42 [0-9]{19}\n$/;
+      influxLine.should.match(expected);
+    });
+
+    it('should transform payload', function () {
       const timestamp = `${Date.now()}000000`;
       const payload: TelegrafPayload = {
         measurement: 'test',
@@ -59,20 +100,20 @@ describe('Telegraf integration', function () {
         timestamp
       };
       const influxLine = getInfluxLine(payload);
-      const expected = `test,first=one,second=two key=value ${timestamp}`;
+      const expected = `test,first=one,second=two key="value" ${timestamp}\n`;
       influxLine.should.equal(expected);
     });
 
-    it('should not escape blank characters (caller must do it)', function () {
+    it('should escape special characters', function () {
       const timestamp = `${Date.now()}000000`;
       const payload: TelegrafPayload = {
-        measurement: 'test with blanks',
-        key: 'key',
-        value: 'v a l u e',
+        measurement: 'test,one two',
+        key: 'ke,y',
+        value: 'val"u e',
         timestamp
       };
       const influxLine = getInfluxLine(payload);
-      const expected = `test with blanks key=v a l u e ${timestamp}`;
+      const expected = `test\\,one\\ two ke\\,y="val\\"u e" ${timestamp}\n`;
       influxLine.should.equal(expected);
     });
   });

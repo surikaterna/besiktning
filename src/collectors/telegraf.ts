@@ -27,7 +27,7 @@ export default function telegraf(payload: TelegrafPayload): void {
   if (MEASUREMENT_BUFFER.length < BUFFER_SIZE) {
     return;
   }
-  dgramClient.send(MEASUREMENT_BUFFER.join('\n'), PORT, HOST, err => {
+  dgramClient.send(MEASUREMENT_BUFFER, PORT, HOST, err => {
     if (err) {
       console.error(err);
     }
@@ -35,12 +35,27 @@ export default function telegraf(payload: TelegrafPayload): void {
   });
 }
 
+function serialize(itemSerializer: (key: string, value: FieldValue) => string, dict: { [key: string]: FieldValue }) {
+  return Object.keys(dict)
+    .sort()
+    .map(key => itemSerializer(key, dict[key]))
+    .join(',');
+}
+
+function tagToString(key: string, value: FieldValue): string {
+  const [escapedKey, escapedValue] = [key, value].map(item => (item as string).replace(/([ ,=])/g, '\\$1'));
+  return `${escapedKey}=${escapedValue}`;
+}
+
+function fieldToString(key: string, value: FieldValue): string {
+  const escapedKey = key.replace(/([ ,=])/g, '\\$1');
+  const escapedValue = typeof value === 'string' ? `"${value.replace(/"/g, '\\"')}"` : value;
+  return `${escapedKey}=${escapedValue}`;
+}
+
 export function getInfluxLine(payload: TelegrafPayload): string {
   const { measurement, tags, key, value, timestamp } = payload;
-  const tagsList = tags
-    ? Object.keys(tags)
-        .map(key => `${key}=${tags[key]}`)
-        .join(',')
-    : '';
-  return `${measurement}${tagsList ? `,${tagsList}` : ''} ${key}=${value} ${timestamp ? timestamp : `${Date.now()}000000`}`;
+  const tagsList = tags ? `,${serialize(tagToString, tags)}` : '';
+  const fieldsList = serialize(fieldToString, { [key]: value });
+  return `${measurement.replace(/([ ,])/g, '\\$1')}${tagsList} ${fieldsList} ${timestamp ? timestamp : `${Date.now()}000000`}\n`;
 }
