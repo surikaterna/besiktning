@@ -1,0 +1,32 @@
+{
+  "name": "besiktning",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "prettier": "prettier-config-surikaterna",
+  "scripts": {
+    "compile": "tsc",
+    "compile.watch": "tsc --watch",
+    "prettier": "prettier --write \"{src,test}/**/*.ts\"",
+    "test": "cross-env TS_NODE_FILES=true mocha",
+    "test.watch": "cross-env TS_NODE_FILES=true mocha --watch"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "@types/chai": "^4.2.11",
+    "@types/mocha": "^7.0.2",
+    "@types/node": "^14.0.14",
+    "@types/sinon": "^9.0.4",
+    "chai": "^4.2.0",
+    "cross-env": "^7.0.2",
+    "mocha": "^8.0.1",
+    "prettier": "^2.0.5",
+    "prettier-config-surikaterna": "^1.0.0",
+    "sinon": "^9.0.2",
+    "ts-node": "^8.10.2",
+    "typescript": "^3.9.6"
+  }
+}
