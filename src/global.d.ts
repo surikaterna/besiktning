@@ -1,4 +1,4 @@
-import { MeasurementCollector } from '@/types';
+import { MeasurementCollector } from './types';
 
 interface Besiktning {
   collect: MeasurementCollector | undefined;

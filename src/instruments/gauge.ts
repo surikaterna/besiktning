@@ -1,5 +1,5 @@
-import { FieldCollector, FieldValue } from '@/types';
-import { isThenable } from '@/util';
+import { FieldCollector, FieldValue } from '../types';
+import { isThenable } from '../util';
 
 export default function gauge(collect: FieldCollector, func: () => FieldValue | Promise<FieldValue>) {
   const result = func();

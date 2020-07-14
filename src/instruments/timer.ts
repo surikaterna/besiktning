@@ -1,5 +1,5 @@
-import { FieldCollector } from '@/types';
-import { isThenable } from '@/util';
+import { FieldCollector } from '../types';
+import { isThenable } from '../util';
 
 export default function timer(collect: FieldCollector, func: Function) {
   const start = process.hrtime.bigint();

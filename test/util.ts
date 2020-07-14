@@ -1,5 +1,5 @@
 import chai from 'chai';
-import { isThenable } from '@/util';
+import { isThenable } from '../src/util';
 
 const should = chai.should();
 

@@ -1,7 +1,7 @@
 import chai from 'chai';
-import Collector from '@/Collector';
-import { withGauge } from '@/decorators';
-import { FieldValue } from '@/types';
+import Collector from '../src/Collector';
+import { withGauge } from '../src/decorators';
+import { FieldValue } from '../src/types';
 
 const should = chai.should();
 let gaugedValues: Array<FieldValue | Promise<FieldValue>> = [];

@@ -1,7 +1,7 @@
 import chai from 'chai';
-import Collector from '@/Collector';
-import { withExceptionMeter } from '@/decorators';
-import { FieldValue } from '@/types';
+import Collector from '../src/Collector';
+import { withExceptionMeter } from '../src/decorators';
+import { FieldValue } from '../src/types';
 
 const should = chai.should();
 

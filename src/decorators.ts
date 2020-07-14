@@ -1,19 +1,18 @@
-import { CollectorPayload, DecoratorPayload, FieldCollector, Instrument } from '@/types';
-import Collector from '@/Collector';
-import meter from '@/instruments/meter';
-import exceptionMeter from '@/instruments/exceptionMeter';
-import gauge from '@/instruments/gauge';
-import timer from '@/instruments/timer';
+import { CollectorPayload, DecoratorPayload, FieldCollector, Instrument } from './types';
+import Collector from './Collector';
+import meter from './instruments/meter';
+import exceptionMeter from './instruments/exceptionMeter';
+import gauge from './instruments/gauge';
+import timer from './instruments/timer';
 
 function withCollector(instrument: Instrument) {
   return function (func: Function, payload: CollectorPayload) {
     return function (this: any, ...args: any[]) {
       const collect: FieldCollector = value => Collector.get()?.call(this, { ...payload, value });
       if (typeof collect !== 'function') {
-        // TODO: Throw error? Log error? Resume silently?
-        return func(...args);
+        return func.apply(this, args);
       }
-      return instrument(collect, () => func(...args));
+      return instrument(collect, func.bind(this, ...args));
     };
   };
 }

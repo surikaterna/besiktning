@@ -1,6 +1,6 @@
 import chai from 'chai';
-import Collector from '@/Collector';
-import { withMeter } from '@/decorators';
+import Collector from '../src/Collector';
+import { withMeter } from '../src/decorators';
 
 const should = chai.should();
 
@@ -62,11 +62,12 @@ describe('@withMeter', function () {
     let [nextIndex, nextValue]: [number, number] = [0, 1];
     Collector.set(({ value: count }) => {
       nextValue += count as number;
+      nextIndex++;
     });
     class Test {
       @withMeter({
         measurement: 'geometric_progression',
-        key: () => `iteration_${nextIndex++}`,
+        key: 'iteration',
         apply: () => nextValue
       })
       meteredNoop(): void {}

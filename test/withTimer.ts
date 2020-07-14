@@ -1,6 +1,6 @@
 import chai from 'chai';
-import Collector from '@/Collector';
-import { withTimer } from '@/decorators';
+import Collector from '../src/Collector';
+import { withTimer } from '../src/decorators';
 
 const should = chai.should();
 

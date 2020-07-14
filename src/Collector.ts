@@ -1,4 +1,4 @@
-import { MeasurementPayload, MeasurementCollector } from '@/types';
+import { MeasurementPayload, MeasurementCollector } from './types';
 
 if (!global.__besiktning) {
   global.__besiktning = {
@@ -6,23 +6,16 @@ if (!global.__besiktning) {
   };
 }
 
-function evaluate(payload: MeasurementPayload): MeasurementPayload {
-  const evaluatedPayload: Partial<MeasurementPayload> = {};
-  for (let key of Object.keys(payload) as Array<keyof MeasurementPayload>) {
-    let value: unknown = payload[key];
-    evaluatedPayload[key] = typeof value === 'function' && key !== 'apply' ? value() : value;
-  }
-  const { apply, value } = payload;
-  evaluatedPayload.value = apply?.call(null, value) ?? value;
-  return evaluatedPayload as MeasurementPayload;
-}
-
 // TODO: Batch measurements in `Collector`?
-// TODO: Implement middleware functionality?
 export default class Collector {
   static set(collect: MeasurementCollector): void {
-    // TODO: Throw error? Log error? Resume silently?
-    global.__besiktning.collect = (payload: MeasurementPayload): void => collect(evaluate(payload));
+    global.__besiktning.collect = (payload: MeasurementPayload): void => {
+      try {
+        collect({ ...payload, value: payload?.apply?.call(null, payload.value) ?? payload.value });
+      } catch (err) {
+        console.error(err);
+      }
+    };
   }
 
   static get(): MeasurementCollector | undefined {
