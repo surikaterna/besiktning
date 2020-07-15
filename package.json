@@ -1,6 +1,6 @@
 {
   "name": "besiktning",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -12,7 +12,7 @@
     "test": "cross-env TS_NODE_FILES=true mocha",
     "test.watch": "cross-env TS_NODE_FILES=true mocha --watch"
   },
-  "author": "",
+  "author": "Surikat AB",
   "license": "MIT",
   "dependencies": {},
   "devDependencies": {
