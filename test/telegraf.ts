@@ -2,7 +2,7 @@ import dgram from 'dgram';
 import sinon from 'sinon';
 import chai from 'chai';
 import Collector from '../src/Collector';
-import telegrafFactory, { getInfluxLine, parseUri } from '../src/collectors/telegraf';
+import telegrafFactory, { getInfluxLine, parseUri } from '../src/collectors/telegrafFactory';
 import { withGauge } from '../src/decorators';
 
 const telegraf = telegrafFactory('udp://:8094', 3, 'besiktning');
