@@ -36,7 +36,7 @@ describe('@withExceptionMeter', function () {
         rejectionCount++;
       }
     }
-    exceptionMarks.length.should.be.equal(rejectionCount);
+    exceptionMarks.length.should.equal(rejectionCount);
   });
 
   it('should count number of thrown exceptions', function () {
@@ -63,7 +63,7 @@ describe('@withExceptionMeter', function () {
       }
     }
     const markCount = (exceptionMarks as number[]).reduce((sum: number, num: number) => sum + num, 0);
-    markCount.should.be.equal(exceptionCount);
+    markCount.should.equal(exceptionCount);
   });
 
   it('should propagate metered exception', async function () {
@@ -88,7 +88,7 @@ describe('@withExceptionMeter', function () {
       .then(() => {})
       .then(() => {})
       .catch(err => messages.push(err.message));
-    [exceptionMarks.length, ...messages].should.be.eql([2, 'Test1', 'Not an error', 'Test2']);
+    [exceptionMarks.length, ...messages].should.eql([2, 'Test1', 'Not an error', 'Test2']);
   });
 
   it('should work with synchronous functions', function () {
@@ -109,7 +109,7 @@ describe('@withExceptionMeter', function () {
         exceptionCount++;
       }
     }
-    exceptionMarks.length.should.be.equal(exceptionCount);
+    exceptionMarks.length.should.equal(exceptionCount);
   });
 
   it('should work with asynchronous functions', async function () {
@@ -130,6 +130,6 @@ describe('@withExceptionMeter', function () {
         rejectionCount++;
       }
     }
-    exceptionMarks.length.should.be.equal(rejectionCount);
+    exceptionMarks.length.should.equal(rejectionCount);
   });
 });

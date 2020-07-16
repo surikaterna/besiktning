@@ -31,7 +31,7 @@ describe('@withMeter', function () {
     const expectedInvocationCount = 3;
     const promises = [0, 1, 2, 3, 4, 5].map((num: number) => (num % 2 === 0 ? test.ignoredNoop() : test.meteredNoop()));
     await Promise.all(promises);
-    meter.should.be.equal(expectedInvocationCount);
+    meter.should.equal(expectedInvocationCount);
   });
 
   it('should work in `Promise` chain', async function () {
@@ -55,7 +55,7 @@ describe('@withMeter', function () {
       .then(() => test.meteredNoop())
       .then(() => test.ignoredNoop())
       .then(() => test.ignoredNoop());
-    meter.should.be.equal(expectedInvocationCount);
+    meter.should.equal(expectedInvocationCount);
   });
 
   it('should count number of method invocations synchronously', function () {
@@ -84,7 +84,7 @@ describe('@withMeter', function () {
     test.meteredNoop();
     const expectedValue = 64;
     const expectedIndex = 6;
-    [nextIndex, nextValue].should.be.eql([expectedIndex, expectedValue]);
+    [nextIndex, nextValue].should.eql([expectedIndex, expectedValue]);
   });
 
   it('should work with synchronous functions', function () {
@@ -98,7 +98,7 @@ describe('@withMeter', function () {
     meteredCounter();
     meteredCounter();
     meteredCounter();
-    meter.should.be.equal(expectedCount);
+    meter.should.equal(expectedCount);
   });
 
   it('should work with asynchronous functions', async function () {
@@ -108,6 +108,6 @@ describe('@withMeter', function () {
       key: 'async_count'
     })((): Promise<number> => new Promise(resolve => setTimeout(() => resolve(resolvedCount++), 100)));
     await Promise.all([meteredCounter(), meteredCounter(), meteredCounter()]);
-    meter.should.be.equal(resolvedCount);
+    meter.should.equal(resolvedCount);
   });
 });

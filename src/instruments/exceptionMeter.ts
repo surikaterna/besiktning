@@ -1,13 +1,13 @@
 import { FieldCollector } from '../types';
 import { isThenable } from '../util';
 
-export default function exceptionMeter(collect: FieldCollector, func: Function) {
+export default function exceptionMeter<F extends (...args: any) => any>(collect: FieldCollector, func: F): ReturnType<F> {
   let result;
   try {
     result = func();
     if (isThenable(result)) {
       return result.then(
-        (result: any) => result,
+        (unwrappedResult: any) => unwrappedResult,
         (err: any): never => {
           try {
             collect(Date.now());
@@ -17,7 +17,6 @@ export default function exceptionMeter(collect: FieldCollector, func: Function) 
         }
       );
     }
-    return result;
   } catch (err) {
     if (!isThenable(result)) {
       try {
@@ -27,4 +26,5 @@ export default function exceptionMeter(collect: FieldCollector, func: Function) 
       }
     }
   }
+  return result;
 }
