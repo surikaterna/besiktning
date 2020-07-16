@@ -6,9 +6,9 @@ import gauge from './instruments/gauge';
 import timer from './instruments/timer';
 
 function withCollector(instrument: Instrument) {
-  return function (func: Function, payload: CollectorPayload) {
-    return function (this: any, ...args: any[]) {
-      const collect: FieldCollector = value => Collector.get()?.call(this, { ...payload, value });
+  return function <F extends (...args: any) => any>(func: F, payload: CollectorPayload) {
+    return function (this: any, ...args: Parameters<F>): ReturnType<F> {
+      const collect: FieldCollector = value => Collector.get()?.call(this, { ...payload, value }, args);
       if (typeof collect !== 'function') {
         return func.apply(this, args);
       }
@@ -17,7 +17,7 @@ function withCollector(instrument: Instrument) {
   };
 }
 
-function createDecorator(instrument: Instrument) {
+export function createDecorator(instrument: Instrument) {
   return function (payload: DecoratorPayload) {
     return function (target: any, propertyKey?: string, descriptor?: TypedPropertyDescriptor<any>): any {
       const collectorPayload = {
@@ -26,7 +26,7 @@ function createDecorator(instrument: Instrument) {
         target: propertyKey ?? target?.name ?? ''
       };
       if (!descriptor) {
-        return withCollector(instrument)(target as Function, collectorPayload);
+        return withCollector(instrument)(target, collectorPayload);
       }
       const { value: targetFunction } = descriptor;
       descriptor.value = withCollector(instrument)(targetFunction, collectorPayload);

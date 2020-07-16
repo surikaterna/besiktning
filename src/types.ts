@@ -1,9 +1,11 @@
 export type FieldValue = NonNullable<number | bigint | string | boolean>;
+export type Dynamic<T> = T | ((...args: any) => T);
+export type Dictionary<T> = { [key: string]: T };
 
 export interface DecoratorPayload {
-  measurement: string;
-  key: string;
-  tags?: { [key: string]: string };
+  measurement: Dynamic<string>;
+  key: Dynamic<string>;
+  tags?: Dynamic<Dictionary<string>>;
   apply?: (value: FieldValue) => FieldValue;
 }
 
@@ -16,8 +18,16 @@ export interface MeasurementPayload extends CollectorPayload {
   value: FieldValue;
 }
 
-export type MeasurementCollector = (payload: MeasurementPayload) => void;
+export interface EvaluatedMeasurementPayload {
+  measurement: string;
+  tags?: Dictionary<string>;
+  key: string;
+  value: FieldValue;
+}
+
+export type MeasurementCollector = (payload: EvaluatedMeasurementPayload) => void;
+export type InternalMeasurementCollector = (payload: MeasurementPayload, args: any[]) => void;
 
 export type FieldCollector = (value: FieldValue) => void;
 
-export type Instrument = (collect: FieldCollector, func: (...args: any[]) => any) => any;
+export type Instrument = <F extends (...args: any) => any>(collect: FieldCollector, func: F) => ReturnType<F>;

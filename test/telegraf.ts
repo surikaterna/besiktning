@@ -2,8 +2,10 @@ import dgram from 'dgram';
 import sinon from 'sinon';
 import chai from 'chai';
 import Collector from '../src/Collector';
-import telegraf, { getInfluxLine, TelegrafPayload, parseUri } from '../src/collectors/telegraf';
+import telegrafFactory, { getInfluxLine, parseUri } from '../src/collectors/telegrafFactory';
 import { withGauge } from '../src/decorators';
+
+const telegraf = telegrafFactory('udp://:8094', 3, 'besiktning');
 
 const should = chai.should();
 
@@ -19,18 +21,18 @@ function sum(a: number, b: number): number {
 
 let linesSentToMockSocket: string[] = [];
 
-describe('Telegraf integration', function () {
+describe('Telegraf module', function () {
   describe('telegraf', function () {
     before(function () {
       sinon.replace(
         dgram.Socket.prototype,
         'send',
-        sinon.fake(function (lines: string[], port: number, hostname: string, callback: Function) {
+        sinon.fake(function (lines: string[], port: number, hostname: string, callback: (...args: any) => any) {
           linesSentToMockSocket.push(...lines);
           callback(null);
         })
       );
-      Collector.set(telegraf);
+      Collector.set(({ measurement, key, value, tags }) => telegraf({ measurement, fields: { [key as string]: value }, tags }));
     });
 
     beforeEach(function () {
@@ -38,7 +40,15 @@ describe('Telegraf integration', function () {
     });
 
     it('should send data to UDP socket', function () {
-      const gaugedAdder = withGauge({ measurement: 'besiktning', key: 'sum', tags: { tag1: 'tag_value1', tag2: 'tag_value2' } })(sum);
+      const payload = {
+        measurement: 'send_udp',
+        key: 'sum',
+        tags: {
+          tag1: 'tag_value1',
+          tag2: 'tag_value2'
+        }
+      };
+      const gaugedAdder = withGauge(payload)(sum);
       this.timeout(0);
       gaugedAdder(1, 2);
       wait(1);
@@ -48,13 +58,21 @@ describe('Telegraf integration', function () {
       const sums = [3, 5, 7];
       sums.forEach((sum, i) => {
         const line = linesSentToMockSocket[i];
-        const lineRegExp = new RegExp(`^besiktning,tag1=tag_value1,tag2=tag_value2 sum=${sum} [0-9]{19}\n$`);
+        const lineRegExp = new RegExp(`^besiktning\.send_udp,tag1=tag_value1,tag2=tag_value2 sum=${sum} [0-9]{19}\n$`);
         line.should.match(lineRegExp);
       });
     });
 
     it('should buffer data', function () {
-      const gaugedAdder = withGauge({ measurement: 'besiktning', key: 'sum', tags: { tag1: 'tag_value1', tag2: 'tag_value2' } })(sum);
+      const payload = {
+        measurement: 'buffer',
+        key: 'sum',
+        tags: {
+          tag1: 'tag_value1',
+          tag2: 'tag_value2'
+        }
+      };
+      const gaugedAdder = withGauge(payload)(sum);
       gaugedAdder(1, 2);
       wait(1);
       gaugedAdder(2, 3);
@@ -65,10 +83,9 @@ describe('Telegraf integration', function () {
   describe('getInfluxLine', function () {
     it('should transform payload without tags', function () {
       const timestamp = `${Date.now()}000000`;
-      const payload: TelegrafPayload = {
+      const payload = {
         measurement: 'test',
-        key: 'key',
-        value: true,
+        fields: { key: true },
         timestamp
       };
       const influxLine = getInfluxLine(payload);
@@ -77,10 +94,9 @@ describe('Telegraf integration', function () {
     });
 
     it('should transform payload without tags and timestamp', function () {
-      const payload: TelegrafPayload = {
+      const payload = {
         measurement: 'test',
-        key: 'key',
-        value: 42
+        fields: { key: 42 }
       };
       const influxLine = getInfluxLine(payload);
       const expected = /^test key=42 [0-9]{19}\n$/;
@@ -89,10 +105,9 @@ describe('Telegraf integration', function () {
 
     it('should transform payload', function () {
       const timestamp = `${Date.now()}000000`;
-      const payload: TelegrafPayload = {
+      const payload = {
         measurement: 'test',
-        key: 'key',
-        value: 'value',
+        fields: { key: 'a_string' },
         tags: {
           first: 'one',
           second: 'two'
@@ -100,20 +115,20 @@ describe('Telegraf integration', function () {
         timestamp
       };
       const influxLine = getInfluxLine(payload);
-      const expected = `test,first=one,second=two key="value" ${timestamp}\n`;
+      const expected = `test,first=one,second=two key="a_string" ${timestamp}\n`;
       influxLine.should.equal(expected);
     });
 
     it('should escape special characters', function () {
       const timestamp = `${Date.now()}000000`;
-      const payload: TelegrafPayload = {
+      const payload = {
         measurement: 'test,one two',
-        key: 'ke,y',
-        value: 'val"u e',
+        fields: { 'k e,y': 'val"u e' },
+        tags: { 't a,g': 'val"u e' },
         timestamp
       };
       const influxLine = getInfluxLine(payload);
-      const expected = `test\\,one\\ two ke\\,y="val\\"u e" ${timestamp}\n`;
+      const expected = `test\\,one\\ two,t\\ a\\,g=val"u\\ e k\\ e\\,y="val\\"u e" ${timestamp}\n`;
       influxLine.should.equal(expected);
     });
   });

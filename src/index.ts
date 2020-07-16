@@ -1,5 +1,5 @@
 import { withGauge, withTimer, withMeter, withExceptionMeter } from './decorators';
 import Collector from './Collector';
-import telegraf from './collectors/telegraf';
+import telegrafFactory from './collectors/telegrafFactory';
 
-export { withGauge, withTimer, withMeter, withExceptionMeter, Collector, telegraf };
+export default { withGauge, withTimer, withMeter, withExceptionMeter, Collector, telegrafFactory };

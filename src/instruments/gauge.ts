@@ -1,14 +1,16 @@
-import { FieldCollector, FieldValue } from '../types';
+import { FieldCollector } from '../types';
 import { isThenable } from '../util';
 
-export default function gauge(collect: FieldCollector, func: () => FieldValue | Promise<FieldValue>) {
+type ThenArg<T> = T extends PromiseLike<infer A> ? A : T;
+
+export default function gauge<F extends (...args: any) => any>(collect: FieldCollector, func: F): ReturnType<F> {
   const result = func();
   if (isThenable(result)) {
-    return (result as Promise<FieldValue>).then((result: FieldValue) => {
-      collect(result);
-      return result;
+    return result.then((unwrappedResult: ThenArg<ReturnType<F>>) => {
+      collect(unwrappedResult);
+      return unwrappedResult;
     });
   }
-  collect(result as FieldValue);
+  collect(result);
   return result;
 }

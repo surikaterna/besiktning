@@ -1,4 +1,16 @@
-import { MeasurementPayload, MeasurementCollector } from './types';
+import { MeasurementPayload, MeasurementCollector, InternalMeasurementCollector, EvaluatedMeasurementPayload } from './types';
+
+export function evaluate(this: any, payload: MeasurementPayload, args: any[]): EvaluatedMeasurementPayload {
+  const evaluatedPayload: Partial<EvaluatedMeasurementPayload> = {};
+  const keys: string[] = Object.keys(payload).filter(key => !['value', 'apply'].includes(key));
+  for (const key of keys as Array<keyof MeasurementPayload>) {
+    const value: unknown = payload[key];
+    evaluatedPayload[key as keyof EvaluatedMeasurementPayload] = typeof value === 'function' ? value.apply(this, args) : value;
+  }
+  const { apply, value } = payload;
+  evaluatedPayload.value = apply?.call(this, value) ?? value;
+  return evaluatedPayload as EvaluatedMeasurementPayload;
+}
 
 export default class Collector {
   static initialize() {
@@ -10,16 +22,16 @@ export default class Collector {
   }
 
   static set(collect: MeasurementCollector): void {
-    global.__besiktning.collect = (payload: MeasurementPayload): void => {
+    global.__besiktning.collect = function (this: any, payload: MeasurementPayload, args: any[]): void {
       try {
-        collect({ ...payload, value: payload?.apply?.call(null, payload.value) ?? payload.value });
+        collect(evaluate.call(this, payload, args));
       } catch (err) {
         console.error(err);
       }
     };
   }
 
-  static get(): MeasurementCollector | undefined {
+  static get(): InternalMeasurementCollector | undefined {
     return global.__besiktning.collect;
   }
 }

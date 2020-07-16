@@ -1,7 +1,7 @@
 import { FieldCollector } from '../types';
 import { isThenable } from '../util';
 
-export default function timer(collect: FieldCollector, func: Function) {
+export default function timer<F extends (...args: any) => any>(collect: FieldCollector, func: F): ReturnType<F> {
   const start = process.hrtime.bigint();
   let result;
   try {
