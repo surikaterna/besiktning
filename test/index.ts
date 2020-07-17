@@ -1,5 +1,5 @@
 import chai from 'chai';
-import besiktning from '../src';
+import * as besiktning from '../src';
 
 const should = chai.should();
 
