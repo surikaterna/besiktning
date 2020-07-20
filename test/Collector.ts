@@ -61,7 +61,85 @@ describe('Collector', function () {
     evaluated.should.eql(expectedPayload);
   });
 
-  it('should not crash on error', function () {
+  it('should not crash on measurement callback error', function () {
+    Collector.set(() => {});
+    const payload = {
+      measurement: () => {
+        throw new Error('`measurement` callback error');
+      },
+      key: 'err_key',
+      value: false,
+      instrument: 'test_instrument',
+      target: 'test_target'
+    };
+    sinon.replace(
+      console,
+      'error',
+      sinon.fake(function (...messages: any): void {})
+    );
+    Collector.get()?.bind(null, payload, []).should.not.throw();
+  });
+
+  it('should not crash on key callback error', function () {
+    Collector.set(() => {});
+    const payload = {
+      measurement: 'err_measurement',
+      key: () => {
+        throw new Error('`key` callback error');
+      },
+      value: false,
+      instrument: 'test_instrument',
+      target: 'test_target'
+    };
+    sinon.replace(
+      console,
+      'error',
+      sinon.fake(function (...messages: any): void {})
+    );
+    Collector.get()?.bind(null, payload, []).should.not.throw();
+  });
+
+  it('should not crash on tags callback error', function () {
+    Collector.set(() => {});
+    const payload = {
+      measurement: 'err_measurement',
+      key: 'err_key',
+      tags: () => {
+        throw new Error('`tags` callback error');
+      },
+      value: false,
+      instrument: 'test_instrument',
+      target: 'test_target'
+    };
+    sinon.replace(
+      console,
+      'error',
+      sinon.fake(function (...messages: any): void {})
+    );
+    Collector.get()?.bind(null, payload, []).should.not.throw();
+  });
+
+  it('should not crash on apply callback error', function () {
+    Collector.set(() => {});
+    const payload = {
+      measurement: 'err_measurement',
+      key: 'err_key',
+      apply: () => {
+        throw new Error('`apply` callback error');
+      },
+      value: false,
+      instrument: 'test_instrument',
+      target: 'test_target'
+    };
+    sinon.replace(
+      console,
+      'error',
+      sinon.fake(function (...messages: any): void {})
+    );
+    Collector.get()?.bind(null, payload, []).should.not.throw();
+  });
+
+  it('should not crash on collector error', function () {
     Collector.set(() => {
       throw new Error('Collector crashed');
     });
