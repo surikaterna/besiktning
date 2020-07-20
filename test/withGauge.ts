@@ -1,4 +1,5 @@
 import chai from 'chai';
+import sinon from 'sinon';
 import Collector from '../src/Collector';
 import { withGauge } from '../src/decorators';
 import { FieldValue } from '../src/types';
@@ -8,11 +9,12 @@ let gaugedValues: Array<FieldValue | Promise<FieldValue>> = [];
 
 describe('@withGauge', function () {
   before(function () {
-    Collector.set(({ value }) => gaugedValues.push(value));
+    Collector.set(({ fields }) => gaugedValues.push(...Object.values(fields)));
   });
 
   beforeEach(function () {
     gaugedValues = [];
+    sinon.restore();
   });
 
   it('should collect `Promise`-wrapped return values', async function () {
@@ -95,5 +97,34 @@ describe('@withGauge', function () {
     expectedNumbers.push(gaugedAdder(2, 2));
     expectedNumbers.push(gaugedAdder(3, 3));
     gaugedValues.should.eql(await Promise.all(expectedNumbers));
+  });
+
+  it('should ignore collector crash', function () {
+    const collectorErr = new Error('Collector crashed');
+    Collector.set(() => {
+      throw collectorErr;
+    });
+    class Test {
+      private _storedString: string = '';
+      get storedString(): string {
+        return this._storedString;
+      }
+      @withGauge({
+        measurement: 'collector_err',
+        key: 'storage'
+      })
+      store(str: string): number {
+        this._storedString = str;
+        return str?.length ?? 0;
+      }
+    }
+    const test = new Test();
+    sinon.replace(
+      console,
+      'error',
+      sinon.fake(function (...messages: any): void {})
+    );
+    const str = 'test';
+    test.store.bind(test, str).should.not.throw().and.equal(str.length);
   });
 });

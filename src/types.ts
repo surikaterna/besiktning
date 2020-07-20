@@ -21,8 +21,7 @@ export interface MeasurementPayload extends CollectorPayload {
 export interface EvaluatedMeasurementPayload {
   measurement: string;
   tags?: Dictionary<string>;
-  key: string;
-  value: FieldValue;
+  fields: Dictionary<FieldValue>;
 }
 
 export type MeasurementCollector = (payload: EvaluatedMeasurementPayload) => void;

@@ -1,4 +1,5 @@
 import chai from 'chai';
+import sinon from 'sinon';
 import Collector from '../src/Collector';
 import { withMeter } from '../src/decorators';
 
@@ -12,6 +13,7 @@ describe('@withMeter', function () {
       meter++;
     });
     meter = 0;
+    sinon.restore();
   });
 
   it('should count number of method invocations', async function () {
@@ -60,7 +62,8 @@ describe('@withMeter', function () {
 
   it('should count number of method invocations synchronously', function () {
     let [nextIndex, nextValue]: [number, number] = [0, 1];
-    Collector.set(({ value: count }) => {
+    Collector.set(({ fields }) => {
+      const count = fields?.iteration ?? 0;
       nextValue += count as number;
       nextIndex++;
     });
@@ -109,5 +112,33 @@ describe('@withMeter', function () {
     })((): Promise<number> => new Promise(resolve => setTimeout(() => resolve(resolvedCount++), 100)));
     await Promise.all([meteredCounter(), meteredCounter(), meteredCounter()]);
     meter.should.equal(resolvedCount);
+  });
+
+  it('should ignore collector crash', function () {
+    const collectorErr = new Error('Collector crashed');
+    Collector.set(() => {
+      throw collectorErr;
+    });
+    class Test {
+      private _count: number = 0;
+      get count(): number {
+        return this._count;
+      }
+      @withMeter({
+        measurement: 'collector_err',
+        key: 'count'
+      })
+      increment(): number {
+        return ++this._count;
+      }
+    }
+    const test = new Test();
+    sinon.replace(
+      console,
+      'error',
+      sinon.fake(function (...messages: any): void {})
+    );
+    const expectedCount = 1;
+    test.increment.bind(test).should.not.throw().and.equal(expectedCount);
   });
 });
