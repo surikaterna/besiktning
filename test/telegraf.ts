@@ -32,7 +32,7 @@ describe('Telegraf module', function () {
           callback(null);
         })
       );
-      Collector.set(({ measurement, key, value, tags }) => telegraf({ measurement, fields: { [key as string]: value }, tags }));
+      Collector.set(telegraf);
     });
 
     beforeEach(function () {

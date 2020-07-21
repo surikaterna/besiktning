@@ -2,13 +2,16 @@ import { MeasurementPayload, MeasurementCollector, InternalMeasurementCollector,
 
 export function evaluate(this: any, payload: MeasurementPayload, args: any[]): EvaluatedMeasurementPayload {
   const evaluatedPayload: Partial<EvaluatedMeasurementPayload> = {};
-  const keys: string[] = Object.keys(payload).filter(key => !['value', 'apply'].includes(key));
+  const keys: string[] = Object.keys(payload).filter(key => !['apply', 'key', 'value'].includes(key));
   for (const key of keys as Array<keyof MeasurementPayload>) {
     const value: unknown = payload[key];
     evaluatedPayload[key as keyof EvaluatedMeasurementPayload] = typeof value === 'function' ? value.apply(this, args) : value;
   }
-  const { apply, value } = payload;
-  evaluatedPayload.value = apply?.call(this, value) ?? value;
+  const { apply, key, value } = payload;
+  const evaluatedKey = typeof key === 'function' ? key.apply(this, args) : key;
+  evaluatedPayload.fields = {
+    [evaluatedKey]: apply?.call(this, value) ?? value
+  };
   return evaluatedPayload as EvaluatedMeasurementPayload;
 }
 
@@ -27,6 +30,7 @@ export default class Collector {
         collect(evaluate.call(this, payload, args));
       } catch (err) {
         console.error(err);
+        console.error(`Failed to collect metrics from "${payload.target}" with "${payload.instrument}"`);
       }
     };
   }

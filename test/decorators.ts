@@ -1,18 +1,22 @@
 import chai from 'chai';
 import { createDecorator } from '../src/decorators';
-import { FieldCollector } from '../src/types';
+import Collector from '../src/Collector';
+import { FieldCollector, EvaluatedMeasurementPayload } from '../src/types';
 
 const should = chai.should();
 
-const mockInstrument = function <F extends (...args: any) => any>(collect: FieldCollector, func: F): ReturnType<F> {
+function mockInstrument<F extends (...args: any) => any>(collect: FieldCollector, func: F): ReturnType<F> {
   collect(0);
   return func();
-};
+}
 const withMock = createDecorator(mockInstrument);
+
+function mockCollector(payload: EvaluatedMeasurementPayload): void {}
 
 describe('decorators', function () {
   describe('createDecorator', function () {
     it('should preserve `this`', function () {
+      Collector.set(mockCollector);
       class Test {
         @withMock({
           measurement: 'mock',

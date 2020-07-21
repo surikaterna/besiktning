@@ -1,4 +1,5 @@
 import chai from 'chai';
+import sinon from 'sinon';
 import Collector from '../src/Collector';
 import { withExceptionMeter } from '../src/decorators';
 import { FieldValue } from '../src/types';
@@ -9,11 +10,12 @@ let exceptionMarks: FieldValue[] = [];
 
 describe('@withExceptionMeter', function () {
   before(function () {
-    Collector.set(({ value }) => exceptionMarks.push(value));
+    Collector.set(({ fields }) => exceptionMarks.push(...Object.values(fields)));
   });
 
   beforeEach(function () {
     exceptionMarks = [];
+    sinon.restore();
   });
 
   it('should count number of rejected `Promise`s', async function () {
@@ -131,5 +133,29 @@ describe('@withExceptionMeter', function () {
       }
     }
     exceptionMarks.length.should.equal(rejectionCount);
+  });
+
+  it("should propagate target's error when collector crashes", function () {
+    const targetErr = new Error('Target crashed');
+    const collectorErr = new Error('Collector crashed');
+    Collector.set(() => {
+      throw collectorErr;
+    });
+    class Test {
+      @withExceptionMeter({
+        measurement: 'collector_err',
+        key: 'err_count'
+      })
+      fail(): never {
+        throw targetErr;
+      }
+    }
+    const test = new Test();
+    sinon.replace(
+      console,
+      'error',
+      sinon.fake(function (...messages: any): void {})
+    );
+    test.fail.should.throw(targetErr);
   });
 });
