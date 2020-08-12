@@ -1,4 +1,7 @@
 import { MeasurementPayload, MeasurementCollector, InternalMeasurementCollector, EvaluatedMeasurementPayload } from './types';
+import { LoggerFactory } from 'slf';
+
+const LOG = LoggerFactory.getLogger('besiktning:Collector:set');
 
 export function evaluate(this: any, payload: MeasurementPayload, args: any[]): EvaluatedMeasurementPayload {
   const evaluatedPayload: Partial<EvaluatedMeasurementPayload> = {};
@@ -29,8 +32,8 @@ export default class Collector {
       try {
         collect(evaluate.call(this, payload, args));
       } catch (err) {
-        console.error(err);
-        console.error(`Failed to collect metrics from "${payload.target}" with "${payload.instrument}"`);
+        LOG.error(err);
+        LOG.error(`Failed to collect metrics from "${payload.target}" with "${payload.instrument}"`);
       }
     };
   }

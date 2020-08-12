@@ -2,41 +2,51 @@ import dgram from 'dgram';
 import sinon from 'sinon';
 import chai from 'chai';
 import Collector from '../src/Collector';
-import telegrafFactory, { getInfluxLine, parseUri } from '../src/collectors/telegrafFactory';
+import telegrafFactory, { getInfluxLine, parseUri, Telegraf } from '../src/collectors/telegrafFactory';
 import { withGauge } from '../src/decorators';
 
-const telegraf = telegrafFactory('udp://:8094', 3, 'besiktning');
+const BUFFER_SIZE = 3;
+const FLUSH_INTERVAL = 5 * 1000;
 
 const should = chai.should();
 
-function wait(s: number): void {
-  const ms = s * 1000;
-  const start = Date.now();
-  while (Date.now() < start + ms) {}
-}
 
 function sum(a: number, b: number): number {
   return a + b;
 }
 
+let telegraf: Telegraf;
 let linesSentToMockSocket: string[] = [];
+let clock: sinon.SinonFakeTimers;
 
 describe('Telegraf module', function () {
+  before(function () {
+    sinon.replace(
+      dgram.Socket.prototype,
+      'send',
+      sinon.fake(function (lines: string[], port: number, hostname: string, callback: (...args: any) => any) {
+        linesSentToMockSocket.push(...lines);
+        callback(null);
+      })
+    );
+  });
+
   describe('telegraf', function () {
-    before(function () {
-      sinon.replace(
-        dgram.Socket.prototype,
-        'send',
-        sinon.fake(function (lines: string[], port: number, hostname: string, callback: (...args: any) => any) {
-          linesSentToMockSocket.push(...lines);
-          callback(null);
-        })
-      );
+    beforeEach(function () {
+      clock = sinon.useFakeTimers();
+      telegraf = telegrafFactory({
+        uri: 'udp://:8094',
+        bufferSize: BUFFER_SIZE,
+        prefix: 'besiktning',
+        flushInterval: FLUSH_INTERVAL
+      });
       Collector.set(telegraf);
+      linesSentToMockSocket = [];
     });
 
-    beforeEach(function () {
-      linesSentToMockSocket = [];
+    afterEach(function () {
+      clock.restore();
+      telegraf.dispose();
     });
 
     it('should send data to UDP socket', function () {
@@ -49,18 +59,18 @@ describe('Telegraf module', function () {
         }
       };
       const gaugedAdder = withGauge(payload)(sum);
-      this.timeout(0);
       gaugedAdder(1, 2);
-      wait(1);
+      clock.tick(1000);
       gaugedAdder(2, 3);
-      wait(1);
+      clock.tick(1000);
       gaugedAdder(3, 4);
       const sums = [3, 5, 7];
-      sums.forEach((sum, i) => {
-        const line = linesSentToMockSocket[i];
-        const lineRegExp = new RegExp(`^besiktning\.send_udp,tag1=tag_value1,tag2=tag_value2 sum=${sum} [0-9]{19}\n$`);
-        line.should.match(lineRegExp);
-      });
+      const expectedLines = [
+        'besiktning.send_udp,tag1=tag_value1,tag2=tag_value2 sum=3 0000000\n',
+        'besiktning.send_udp,tag1=tag_value1,tag2=tag_value2 sum=5 1000000000\n',
+        'besiktning.send_udp,tag1=tag_value1,tag2=tag_value2 sum=7 2000000000\n'
+      ];
+      linesSentToMockSocket.should.eql(expectedLines);
     });
 
     it('should buffer data', function () {
@@ -74,9 +84,27 @@ describe('Telegraf module', function () {
       };
       const gaugedAdder = withGauge(payload)(sum);
       gaugedAdder(1, 2);
-      wait(1);
-      gaugedAdder(2, 3);
+      for (let i = 0; i < BUFFER_SIZE - 2; i++) {
+        clock.tick(1000);
+        gaugedAdder(2 + i, 3 + i);
+      }
       linesSentToMockSocket.should.be.empty;
+    });
+
+    it('should automatically flush buffer after elapsed time interval', function () {
+      const payload = {
+        measurement: 'buffer',
+        key: 'sum',
+        tags: {
+          tag1: 'tag_value1',
+          tag2: 'tag_value2'
+        }
+      };
+      const gaugedAdder = withGauge(payload)(sum);
+      gaugedAdder(1, 1);
+      clock.tick(FLUSH_INTERVAL);
+      const expectedMessages = ['besiktning.buffer,tag1=tag_value1,tag2=tag_value2 sum=2 0000000\n'];
+      linesSentToMockSocket.should.eql(expectedMessages);
     });
   });
 

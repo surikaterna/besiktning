@@ -1,5 +1,4 @@
 import chai from 'chai';
-import sinon from 'sinon';
 import Collector from '../src/Collector';
 import { withTimer } from '../src/decorators';
 
@@ -22,7 +21,6 @@ describe('@withTimer', function () {
 
   beforeEach(function () {
     measuredTime = 0;
-    sinon.restore();
   });
 
   it('should time an asynchronous method', async function () {
@@ -132,11 +130,6 @@ describe('@withTimer', function () {
       }
     }
     const test = new Test();
-    sinon.replace(
-      console,
-      'error',
-      sinon.fake(function (...messages: any): void {})
-    );
     const interval = 1000;
     test.wait.bind(test, interval).should.not.throw();
     test.interval.should.be.above(interval - ERROR_MARGIN).and.below(interval + ERROR_MARGIN);

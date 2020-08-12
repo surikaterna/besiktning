@@ -30,3 +30,5 @@ export type InternalMeasurementCollector = (payload: MeasurementPayload, args: a
 export type FieldCollector = (value: FieldValue) => void;
 
 export type Instrument = <F extends (...args: any) => any>(collect: FieldCollector, func: F) => ReturnType<F>;
+
+export type ThenArg<T> = T extends PromiseLike<infer A> ? A : T;

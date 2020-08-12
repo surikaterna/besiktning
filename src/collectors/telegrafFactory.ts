@@ -1,5 +1,8 @@
-import { FieldValue, Dictionary } from '../types';
 import dgram from 'dgram';
+import { LoggerFactory } from 'slf';
+import { FieldValue, Dictionary } from '../types';
+
+const LOG = LoggerFactory.getLogger('besiktning:telegrafFactory');
 
 interface TelegrafPayload {
   measurement: string;
@@ -8,7 +11,19 @@ interface TelegrafPayload {
   timestamp?: number | bigint | string;
 }
 
-type Telegraf = (payload: TelegrafPayload) => void;
+interface TelegrafFactoryOptions {
+  uri: string;
+  bufferSize?: number;
+  flushInterval?: number;
+  prefix?: string;
+}
+
+export interface Telegraf {
+  (payload: TelegrafPayload): void;
+  dispose: () => void;
+}
+
+type MessageBuffer = NonNullable<string[]>;
 
 export function parseUri(uri: string): [string, number] {
   const uriParts = uri?.split(':') ?? [];
@@ -41,11 +56,30 @@ export function getInfluxLine(payload: TelegrafPayload): string {
   return `${measurement.replace(/([ ,])/g, '\\$1')}${tagsList} ${fieldsList} ${timestamp ? timestamp : `${Date.now()}000000`}\n`;
 }
 
-export default function telegrafFactory(uri: string, bufferSize: number, prefix: string): Telegraf {
-  const [host, port]: [string, number] = parseUri(uri);
+export default function telegrafFactory(options: TelegrafFactoryOptions): Telegraf {
+  const { prefix } = options;
+  const flushInterval = options.flushInterval || 0;
+  const bufferSize = options.bufferSize || 1;
+  const [host, port]: [string, number] = parseUri(options.uri);
   const dgramSocket: dgram.Socket = dgram.createSocket('udp4');
-  let buffer: NonNullable<string[]> = [];
-  return function (payload: TelegrafPayload): void {
+
+  const flush = function (messages: MessageBuffer, callback?: () => void) {
+    dgramSocket.send(messages, port, host, function (err: Error | null): void {
+      if (err) {
+        LOG.error(err);
+        if (messages.length > 0) {
+          LOG.error('Failed to send to Telegraf:', JSON.stringify(messages));
+        }
+      }
+      if (callback) {
+        callback();
+      }
+    });
+  };
+
+  let buffer: MessageBuffer = [];
+
+  const telegraf = function (payload: TelegrafPayload): void {
     if (prefix) {
       payload.measurement = `${prefix}.${payload.measurement}`;
     }
@@ -53,14 +87,24 @@ export default function telegrafFactory(uri: string, bufferSize: number, prefix:
     if (buffer.length < bufferSize) {
       return;
     }
-    dgramSocket.send(buffer, port, host, function (err: Error | null): void {
-      if (err) {
-        console.error(err);
-        if (buffer.length > 0) {
-          console.error('Failed to send to Telegraf:', JSON.stringify(buffer));
-        }
-      }
+    flush(buffer, () => {
       buffer = [];
     });
   };
+
+  if (flushInterval > 0) {
+    const intervalHandle = setInterval(function () {
+      if (buffer.length === 0) {
+        return;
+      }
+      const bufferCopy = buffer.slice();
+      buffer = [];
+      flush(bufferCopy);
+    }, flushInterval);
+    telegraf.dispose = () => clearInterval(intervalHandle);
+  } else {
+    telegraf.dispose = () => {};
+  }
+
+  return telegraf;
 }

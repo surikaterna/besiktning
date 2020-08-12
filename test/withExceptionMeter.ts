@@ -1,5 +1,4 @@
 import chai from 'chai';
-import sinon from 'sinon';
 import Collector from '../src/Collector';
 import { withExceptionMeter } from '../src/decorators';
 import { FieldValue } from '../src/types';
@@ -15,7 +14,6 @@ describe('@withExceptionMeter', function () {
 
   beforeEach(function () {
     exceptionMarks = [];
-    sinon.restore();
   });
 
   it('should count number of rejected `Promise`s', async function () {
@@ -46,7 +44,6 @@ describe('@withExceptionMeter', function () {
       @withExceptionMeter({
         measurement: 'with_exception_meter',
         key: 'exception',
-        apply: () => 1
       })
       throwExceptionIfTrue(bool: boolean): void {
         if (bool) {
@@ -74,7 +71,6 @@ describe('@withExceptionMeter', function () {
       @withExceptionMeter({
         measurement: 'with_exception_meter',
         key: 'exception',
-        apply: () => 1
       })
       throwException(msg: string): never {
         throw new Error(msg);
@@ -97,7 +93,6 @@ describe('@withExceptionMeter', function () {
     const meteredExceptionThrower = withExceptionMeter({
       measurement: 'with_exception_meter',
       key: 'count',
-      apply: () => 1
     })((bool: boolean) => {
       if (bool) {
         throw new Error();
@@ -118,7 +113,6 @@ describe('@withExceptionMeter', function () {
     const meteredReject = withExceptionMeter({
       measurement: 'with_exception_meter',
       key: 'count',
-      apply: () => 1
     })((ms: number): Promise<number> => new Promise((_, reject) => setTimeout(() => reject(new Error('metered')), ms)));
     let rejectionCount = 0;
     try {
@@ -151,11 +145,6 @@ describe('@withExceptionMeter', function () {
       }
     }
     const test = new Test();
-    sinon.replace(
-      console,
-      'error',
-      sinon.fake(function (...messages: any): void {})
-    );
     test.fail.should.throw(targetErr);
   });
 });

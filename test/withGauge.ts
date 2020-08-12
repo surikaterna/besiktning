@@ -1,5 +1,4 @@
 import chai from 'chai';
-import sinon from 'sinon';
 import Collector from '../src/Collector';
 import { withGauge } from '../src/decorators';
 import { FieldValue } from '../src/types';
@@ -14,7 +13,6 @@ describe('@withGauge', function () {
 
   beforeEach(function () {
     gaugedValues = [];
-    sinon.restore();
   });
 
   it('should collect `Promise`-wrapped return values', async function () {
@@ -119,11 +117,6 @@ describe('@withGauge', function () {
       }
     }
     const test = new Test();
-    sinon.replace(
-      console,
-      'error',
-      sinon.fake(function (...messages: any): void {})
-    );
     const str = 'test';
     test.store.bind(test, str).should.not.throw().and.equal(str.length);
   });

@@ -1,6 +1,6 @@
 {
   "name": "besiktning",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -11,11 +11,10 @@
     "prettier": "prettier --write \"{src,test}/**/*.ts\"",
     "test": "cross-env TS_NODE_FILES=true mocha",
     "test.watch": "cross-env TS_NODE_FILES=true mocha --watch",
-    "prepublish": "npm test && npm run compile"
+    "prepublishOnly": "npm test && npm run compile"
   },
   "author": "Surikat AB",
   "license": "MIT",
-  "dependencies": {},
   "devDependencies": {
     "@types/chai": "^4.2.11",
     "@types/mocha": "^7.0.2",
@@ -29,5 +28,8 @@
     "sinon": "^9.0.2",
     "ts-node": "^8.10.2",
     "typescript": "^3.9.6"
+  },
+  "peerDependencies": {
+    "slf": "^1.0.3"
   }
 }

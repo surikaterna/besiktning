@@ -1,5 +1,4 @@
 import chai from 'chai';
-import sinon from 'sinon';
 import Collector from '../src/Collector';
 import { withMeter } from '../src/decorators';
 
@@ -13,7 +12,6 @@ describe('@withMeter', function () {
       meter++;
     });
     meter = 0;
-    sinon.restore();
   });
 
   it('should count number of method invocations', async function () {
@@ -133,11 +131,6 @@ describe('@withMeter', function () {
       }
     }
     const test = new Test();
-    sinon.replace(
-      console,
-      'error',
-      sinon.fake(function (...messages: any): void {})
-    );
     const expectedCount = 1;
     test.increment.bind(test).should.not.throw().and.equal(expectedCount);
   });

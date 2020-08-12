@@ -1,16 +1,24 @@
 import chai from 'chai';
 import sinon from 'sinon';
+import { Logger } from 'slf';
 import Collector from '../src/Collector';
-import { MeasurementPayload, EvaluatedMeasurementPayload, MeasurementCollector } from '../src/types';
+import { MeasurementPayload } from '../src/types';
 
 const should = chai.should();
 
+let logMessages: string[] = [];
 let evaluated = {};
+
+const sandbox = sinon.createSandbox();
 
 describe('Collector', function () {
   beforeEach(function () {
     global.__besiktning.collect = undefined;
-    sinon.restore();
+    logMessages = [];
+  });
+
+  afterEach(function () {
+    sandbox.restore();
   });
 
   it('should set collector function', function () {
@@ -72,11 +80,6 @@ describe('Collector', function () {
       instrument: 'test_instrument',
       target: 'test_target'
     };
-    sinon.replace(
-      console,
-      'error',
-      sinon.fake(function (...messages: any): void {})
-    );
     Collector.get()?.bind(null, payload, []).should.not.throw();
   });
 
@@ -91,11 +94,6 @@ describe('Collector', function () {
       instrument: 'test_instrument',
       target: 'test_target'
     };
-    sinon.replace(
-      console,
-      'error',
-      sinon.fake(function (...messages: any): void {})
-    );
     Collector.get()?.bind(null, payload, []).should.not.throw();
   });
 
@@ -111,11 +109,6 @@ describe('Collector', function () {
       instrument: 'test_instrument',
       target: 'test_target'
     };
-    sinon.replace(
-      console,
-      'error',
-      sinon.fake(function (...messages: any): void {})
-    );
     Collector.get()?.bind(null, payload, []).should.not.throw();
   });
 
@@ -131,11 +124,6 @@ describe('Collector', function () {
       instrument: 'test_instrument',
       target: 'test_target'
     };
-    sinon.replace(
-      console,
-      'error',
-      sinon.fake(function (...messages: any): void {})
-    );
     Collector.get()?.bind(null, payload, []).should.not.throw();
   });
 
@@ -150,11 +138,6 @@ describe('Collector', function () {
       instrument: 'test_instrument',
       target: 'test_target'
     };
-    sinon.replace(
-      console,
-      'error',
-      sinon.fake(function (...messages: any): void {})
-    );
     Collector.get()?.bind(null, payload, []).should.not.throw();
   });
 
@@ -162,14 +145,6 @@ describe('Collector', function () {
     Collector.set(() => {
       throw new Error('Collector crashed');
     });
-    sinon.replace(
-      console,
-      'error',
-      sinon.fake(function (err: Error): void {
-        errorsSentToStderr.push(err);
-      })
-    );
-    const errorsSentToStderr: Error[] = [];
     const payload = {
       measurement: 'err_measurement',
       key: 'err_key',
@@ -177,9 +152,15 @@ describe('Collector', function () {
       instrument: 'payload.instrument',
       target: 'payload.target'
     };
+    sandbox.replace(Logger.prototype, 'error', function (err: unknown) {
+      if (err instanceof Error) {
+        logMessages.push(err.message);
+      } else {
+        logMessages.push(err as string);
+      }
+    });
     Collector.get()?.call(null, payload, []);
-    const messages = errorsSentToStderr.map(err => err?.message ?? err);
     const expectedMessages = ['Collector crashed', 'Failed to collect metrics from "payload.target" with "payload.instrument"'];
-    messages.should.eql(expectedMessages);
+    logMessages.should.eql(expectedMessages);
   });
 });
