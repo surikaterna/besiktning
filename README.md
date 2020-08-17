@@ -39,7 +39,7 @@ The API provides four method decorators for performing measurements:
 
 The decorators work with regular functions as well.
 
-Each decorator accepts a data object, inspired by the data model of InfluxDB:
+Each decorator accepts an object with structure based on the data model of InfluxDB:
 
 ```typescript
 type FieldValue = NonNullable<number | bigint | string | boolean>;
@@ -56,43 +56,80 @@ interface DecoratorPayload {
 
 ## Examples
 
-`withMeter` as a decorator:
+Measure number of exceptions:
 
 ```typescript
-class MyClass {
-  @withMeter({
-    measurement: 'example',
-    key: 'hello',
-    tags: (x, y, z) => {
-      // same arguments as myMethod below
-      // logic to compute tags
-      return computedTags;
-    }
+class Vehicle {
+  @withExceptionMeter({
+    measurement: 'vehicle',
+    key: 'exception',
+    tags: { brand: 'myBrand' }
   })
-  myMethod(x, y, z) {
-    // Implementation
+  start(): void {
+    // ...
+    throw new Error('Vehicle failed to start.')
+    // ...
   }
 }
-const myInstance = new MyClass();
-myInstance.myMethod(one, 2, 'three');
 ```
 
-`withMeter` as a regular function wrapper:
+Measure number of method invocations:
 
 ```typescript
-const measuredMyFunction = withMeter({
-  measurement: 'myMeasurement',
-  key: 'myKey',
-  tags: (x, y, z) => {
-    // same arguments as the arrow function below
-    // logic to compute tags
-    return computedTags;
+class Store {
+  @withMeter({
+    measurement: 'store',
+    key: 'membership_count',
+    tags: person => ({
+      age_group: getAgeGroup(person.age),
+      region: getRegion(person.address)
+    })
+  })
+  registerMembership(person: Person): void {
+    // ...
   }
-})((x, y, z) => {
-    /* Implementation */
-});
-// ...
-measuredMyFunction(one, 2, 'three');
+}
+```
+
+Measure return value of a method:
+
+```typescript
+class Store {
+  @withGauge({
+    measurement: 'store',
+    key: 'income',
+    tags: item => item
+  })
+  sell(item: Item): number {
+    // ...
+  }
+}
+```
+
+Measure execution time of a method:
+
+```typescript
+class Fibonacci {
+  @withTimer({
+    measurement: 'fibonacci',
+    key: getKey()
+  })
+  next(): number {
+    // ...
+  }
+}
+```
+
+The decorators can also wrap regular functions:
+
+```typescript
+let i = 0
+const counter = () => i++;
+const gaugedCounter = withGauge({
+  measurement: 'regular_function',
+  key: 'count'
+})(counter)
+gaugedCounter();
 ```
 
 The codebase is tested extensively, and the test cases may serve as further examples.
