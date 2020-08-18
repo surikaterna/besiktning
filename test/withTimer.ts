@@ -4,7 +4,7 @@ import { withTimer } from '../src/decorators';
 
 const should = chai.should();
 
-const ERROR_MARGIN = 20;
+const ERROR_MARGIN = 100;
 let measuredTime = 0;
 
 function sum(nums: number[]): number {
