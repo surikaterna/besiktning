@@ -10,7 +10,7 @@ export default function exceptionMeter<F extends (...args: any) => any>(collect:
         (unwrappedResult: any) => unwrappedResult,
         (err: any): never => {
           try {
-            collect(Date.now());
+            collect(1);
           } finally {
             throw err;
           }
@@ -20,7 +20,7 @@ export default function exceptionMeter<F extends (...args: any) => any>(collect:
   } catch (err) {
     if (!isThenable(result)) {
       try {
-        collect(Date.now());
+        collect(1);
       } finally {
         throw err;
       }
