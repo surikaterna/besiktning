@@ -54,7 +54,7 @@ interface DecoratorPayload {
 }
 ```
 
-## Examples  
+## Examples
 
 Measure number of exceptions:
 
