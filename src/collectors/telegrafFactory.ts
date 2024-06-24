@@ -40,7 +40,7 @@ function serialize(itemSerializer: (key: string, value: FieldValue) => string, d
 }
 
 function tagToString(key: string, value: FieldValue): string {
-  return [key, value].map(item => (item as string).replace(/([ ,=])/g, '\\$1')).join('=');
+  return [key, value].map(item => (typeof item === 'string' ? item.replace(/([ ,=])/g, '\\$1') : String(item).replace(/([ ,=])/g, '\\$1'))).join('=');
 }
 
 function fieldToString(key: string, value: FieldValue): string {
