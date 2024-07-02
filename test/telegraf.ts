@@ -10,7 +10,6 @@ const FLUSH_INTERVAL = 5 * 1000;
 
 const should = chai.should();
 
-
 function sum(a: number, b: number): number {
   return a + b;
 }
@@ -144,6 +143,40 @@ describe('Telegraf module', function () {
       };
       const influxLine = getInfluxLine(payload);
       const expected = `test,first=one,second=two key="a_string" ${timestamp}\n`;
+      influxLine.should.equal(expected);
+    });
+
+    it('should transform payload with one undefined tag', function () {
+      const timestamp = `${Date.now()}000000`;
+      const payload = {
+        measurement: 'test',
+        fields: { key: 'a_string' },
+        tags: {
+          first: 'one',
+          second: undefined
+        },
+        timestamp
+      };
+      //@ts-ignore
+      const influxLine = getInfluxLine(payload);
+      const expected = `test,first=one,second=undefined key="a_string" ${timestamp}\n`;
+      influxLine.should.equal(expected);
+    });
+
+    it('should transform payload with one undefined field', function () {
+      const timestamp = `${Date.now()}000000`;
+      const payload = {
+        measurement: 'test',
+        fields: { key: undefined },
+        tags: {
+          first: 'one',
+          second: 'two'
+        },
+        timestamp
+      };
+      //@ts-ignore
+      const influxLine = getInfluxLine(payload);
+      const expected = `test,first=one,second=two key="undefined" ${timestamp}\n`;
       influxLine.should.equal(expected);
     });
 
