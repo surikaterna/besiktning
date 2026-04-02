@@ -1,13 +1,10 @@
-import sinon from 'sinon';
-import { Logger } from 'slf';
+import { LoggerFactory } from 'slf';
 import { expect } from 'chai';
 import Collector from '../src/Collector';
 import { MeasurementPayload } from '../src/types';
 
 let logMessages: string[] = [];
 let evaluated = {};
-
-const sandbox = sinon.createSandbox();
 
 describe('Collector', function () {
   beforeEach(function () {
@@ -16,7 +13,7 @@ describe('Collector', function () {
   });
 
   afterEach(function () {
-    sandbox.restore();
+    LoggerFactory.setFactory(null);
   });
 
   it('should set collector function', function () {
@@ -140,6 +137,11 @@ describe('Collector', function () {
   });
 
   it('should log error on failure', function () {
+    const logEvents: Array<{ level: string; params: unknown[] }> = [];
+    LoggerFactory.setFactory((...events: Array<{ level: string; params: unknown[] }>) => {
+      logEvents.push(...events);
+    });
+
     Collector.set(() => {
       throw new Error('Collector crashed');
     });
@@ -150,14 +152,18 @@ describe('Collector', function () {
       instrument: 'payload.instrument',
       target: 'payload.target'
     };
-    sandbox.replace(Logger.prototype, 'error', function (err: unknown) {
-      if (err instanceof Error) {
-        logMessages.push(err.message);
-      } else {
-        logMessages.push(err as string);
-      }
-    });
     Collector.get()?.call(null, payload, []);
+
+    logMessages = logEvents
+      .filter(event => event.level === 'error')
+      .map(event => {
+        const err = event.params[0];
+        if (err instanceof Error) {
+          return err.message;
+        }
+        return `${err ?? ''}`;
+      });
+
     const expectedMessages = ['Collector crashed', 'Failed to collect metrics from "payload.target" with "payload.instrument"'];
     expect(logMessages).to.deep.equal(expectedMessages);
   });

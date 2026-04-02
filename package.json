@@ -16,7 +16,7 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^14.0.14",
-    "@types/mocha":"^10.0.10",
+    "@types/mocha": "^10.0.10",
     "@types/sinon": "^21.0.0",
     "chai": "^6.2.2",
     "cross-env": "^7.0.2",
@@ -28,6 +28,10 @@
     "ts-node": "^8.10.2",
     "turbo": "^2.9.3",
     "typescript": "^3.9.6"
+  },
+  "overrides": {
+    "serialize-javascript": "^7.0.5",
+    "diff": "^8.0.4"
   },
   "peerDependencies": {
     "slf": ">=1.0.3"
