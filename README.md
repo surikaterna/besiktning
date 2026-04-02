@@ -19,7 +19,7 @@ $ npm install slf
 Initialize `besiktning`:
 
 ```typescript
-import { Collector, telegrafFactory } from 'besiktning';
+import { Collector, telegrafFactory, NodeRuntimeMetrics } from 'besiktning';
 
 const telegraf = telegrafFactory({
   uri: process.env.NODE_TELEGRAF_URI || 'udp://:8094',
@@ -28,6 +28,14 @@ const telegraf = telegrafFactory({
   prefix: 'myMeasurementPrefix'
 });
 Collector.set(telegraf);
+
+const runtimeMetrics = new NodeRuntimeMetrics({
+  measurement: 'node_runtime',
+  tags: { service: 'my-service' },
+  sampleIntervalMs: 5000,
+  eventLoopBlockingThresholdMs: 50
+});
+runtimeMetrics.start();
 ```
 
 The API provides four method decorators for performing measurements:
@@ -41,6 +49,7 @@ The decorators work with regular functions as well.
 
 Each decorator accepts an object with structure based on the data model of InfluxDB:
 
+
 ```typescript
 type FieldValue = NonNullable<number | bigint | string | boolean>;
 type Dynamic<T> = T | ((...args: any) => T);
@@ -53,6 +62,8 @@ interface DecoratorPayload {
   apply?: (value: FieldValue) => FieldValue;
 }
 ```
+
+For `NodeRuntimeMetrics` (runtime collector) usage, options, emitted metrics, and lifecycle, see [`src/runtimeMetrics/README.md`](src/runtimeMetrics/README.md).
 
 ## Examples
 
@@ -130,6 +141,25 @@ const gaugedCounter = withGauge({
   key: 'count'
 })(counter)
 gaugedCounter();
+```
+
+Measure generic runtime metrics passively:
+
+```typescript
+class Runtime {
+  private readonly metrics = new NodeRuntimeMetrics({
+    measurement: 'node_runtime',
+    sampleIntervalMs: 5000
+  });
+
+  start(): void {
+    this.metrics.start();
+  }
+
+  dispose(): void {
+    this.metrics.dispose();
+  }
+}
 ```
 
 The codebase is tested extensively, and the test cases may serve as further examples.
