@@ -31,7 +31,7 @@ runtimeMetrics.start();
 | Option | Type | Default | Description |
 | --- | --- | --- | --- |
 | `measurement` | `string` | `node_runtime` | Measurement name used for all emitted runtime metrics. |
-| `tags` | `Dictionary<string>` | `undefined` | Static tags attached to every metric from this instance. |
+| `tags` | `Dictionary<string>` | `undefined` | Static tags attached to every metric from this instance. `hostname` is always added as a permanent tag. If `tags.hostname` is provided, that value is used. |
 | `sampleIntervalMs` | `number` | `5000` | Interval for periodic background sampling after `start()` is called. Invalid/non-positive values fall back to default. |
 | `eventLoopResolutionMs` | `number` | `20` | Resolution for event loop delay histogram sampling. Invalid/non-positive values fall back to default. The effective internal resolution is rounded and clamped to a minimum of `1` ms. |
 | `eventLoopBlockingThresholdMs` | `number` | `50` | Threshold used for `event_loop.blocked` (`1` when max lag in sample window is at or above threshold). |
@@ -57,6 +57,8 @@ runtimeMetrics.start();
 ## Emitted metrics
 
 All metrics are emitted under the configured `measurement` (default `node_runtime`), with the metric name as the field key.
+
+`hostname` is always included as a permanent tag on emitted metrics. User-provided tags are merged on top.
 
 | Metric key | Type / unit | Emitted by | Notes |
 | --- | --- | --- | --- |
@@ -84,3 +86,10 @@ All metrics are emitted under the configured `measurement` (default `node_runtim
 | `gc.pause.mean_ms` | milliseconds | periodic sampler (`start`) | Mean GC pause duration in current window. |
 | `gc.pause_ms` | milliseconds | GC performance observer | Emitted per GC event, with `kind` tag (`major`, `minor`, `incremental`, `weakcb`, `unknown`). |
 
+## Grafana starter dashboard
+
+A sample dashboard is included at:
+
+- `src/runtimeMetrics/grafana-dashboard.sample.json`
+
+Import it in Grafana, select your InfluxDB datasource, and adjust the `measurement` template variable if you use a different measurement name than `node_runtime`.

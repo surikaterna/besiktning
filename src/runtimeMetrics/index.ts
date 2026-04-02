@@ -1,3 +1,4 @@
+import os from 'os';
 import { monitorEventLoopDelay, PerformanceObserver } from 'perf_hooks';
 import Collector from '../Collector';
 import { Dictionary, FieldValue } from '../types';
@@ -24,7 +25,10 @@ export default class NodeRuntimeMetrics {
 
   constructor(options: RuntimeMetricsOptions = {}) {
     this.measurement = options.measurement ?? 'node_runtime';
-    this.staticTags = options.tags;
+    this.staticTags = {
+      hostname: os.hostname(),
+      ...(options.tags || {})
+    };
     this.sampleIntervalMs = ensurePositive(options.sampleIntervalMs, 5000);
     const eventLoopResolutionMs = ensurePositive(options.eventLoopResolutionMs, 20);
     const eventLoopResolution = Math.max(1, Math.round(eventLoopResolutionMs));
