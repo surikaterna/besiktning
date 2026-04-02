@@ -1,6 +1,16 @@
 import os from 'os';
-import { performance } from 'perf_hooks';
+import * as perfHooks from 'perf_hooks';
 import { CpuSnapshot, EventLoopUtilizationSnapshot } from './types';
+
+interface PerfHooksConstants {
+  NODE_PERFORMANCE_GC_MAJOR?: number;
+  NODE_PERFORMANCE_GC_MINOR?: number;
+  NODE_PERFORMANCE_GC_INCREMENTAL?: number;
+  NODE_PERFORMANCE_GC_WEAKCB?: number;
+}
+
+const performance = perfHooks.performance;
+const perfConstants = (perfHooks as typeof perfHooks & { constants?: PerfHooksConstants }).constants;
 
 export function clamp(value: number, min: number = 0, max: number = 1): number {
   if (!Number.isFinite(value)) {
@@ -48,16 +58,20 @@ export function getCpuCount(): number {
 }
 
 export function getGcKind(kind: number | undefined): string {
-  if (kind === 1) {
+  const gcMajor = perfConstants?.NODE_PERFORMANCE_GC_MAJOR;
+  if (typeof gcMajor === 'number' && kind === gcMajor) {
     return 'major';
   }
-  if (kind === 2) {
+  const gcMinor = perfConstants?.NODE_PERFORMANCE_GC_MINOR;
+  if (typeof gcMinor === 'number' && kind === gcMinor) {
     return 'minor';
   }
-  if (kind === 4) {
+  const gcIncremental = perfConstants?.NODE_PERFORMANCE_GC_INCREMENTAL;
+  if (typeof gcIncremental === 'number' && kind === gcIncremental) {
     return 'incremental';
   }
-  if (kind === 8) {
+  const gcWeakcb = perfConstants?.NODE_PERFORMANCE_GC_WEAKCB;
+  if (typeof gcWeakcb === 'number' && kind === gcWeakcb) {
     return 'weakcb';
   }
   return 'unknown';

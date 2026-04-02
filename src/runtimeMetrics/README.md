@@ -11,7 +11,6 @@ import { Collector, telegrafFactory, NodeRuntimeMetrics } from 'besiktning';
 const telegraf = telegrafFactory({
   uri: process.env.NODE_TELEGRAF_URI || 'udp://:8094',
   bufferSize: parseInt(process.env.NODE_TELEGRAF_BUFFER_SIZE, 10) || 1,
-  flushInterval: parseInt(process.env.NODE_TELEGRAF_FLUSH_INTERVAL, 10 * 1000) || -1,
   prefix: 'myMeasurementPrefix'
 });
 
