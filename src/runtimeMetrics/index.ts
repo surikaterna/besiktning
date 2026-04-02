@@ -42,6 +42,8 @@ export default class NodeRuntimeMetrics {
     this.previousProcessCpuUsage = process.cpuUsage();
     this.previousHostCpu = getCpuSnapshot();
     this.previousCpuWallClockMs = Date.now();
+    this.gcSnapshot = { count: 0, totalMs: 0, maxMs: 0 };
+    this.eventLoopHistogram.reset();
     this.eventLoopHistogram.enable();
     this.installGcObserver();
     this.sampleHandle = setInterval(() => this.sampleNow(), this.sampleIntervalMs);
@@ -56,6 +58,8 @@ export default class NodeRuntimeMetrics {
       this.sampleHandle = undefined;
     }
     this.eventLoopHistogram.disable();
+    this.eventLoopHistogram.reset();
+    this.gcSnapshot = { count: 0, totalMs: 0, maxMs: 0 };
     if (this.gcObserver) {
       this.gcObserver.disconnect();
       this.gcObserver = undefined;
