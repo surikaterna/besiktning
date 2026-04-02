@@ -21,6 +21,7 @@ describe('Telegraf module', function () {
     sinon.replace(
       dgram.Socket.prototype,
       'send',
+      // @ts-ignore
       sinon.fake(function (lines: string[], port: number, hostname: string, callback: (...args: any) => any) {
         linesSentToMockSocket.push(...lines);
         callback(null);

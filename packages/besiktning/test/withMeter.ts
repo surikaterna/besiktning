@@ -39,7 +39,7 @@ describe('@withMeter', function () {
         key: 'promise_invocation'
       })
       meteredNoop() {
-        return new Promise(resolve => setTimeout(() => resolve(), 10));
+        return new Promise((resolve) => setTimeout(() => resolve(true), 10));
       }
       ignoredNoop() {
         return Promise.resolve();
@@ -105,7 +105,7 @@ describe('@withMeter', function () {
     const meteredCounter = withMeter({
       measurement: 'with_meter',
       key: 'async_count'
-    })((): Promise<number> => new Promise(resolve => setTimeout(() => resolve(resolvedCount++), 100)));
+    })((): Promise<number> => new Promise((resolve) => setTimeout(() => resolve(resolvedCount++), 100)));
     await Promise.all([meteredCounter(), meteredCounter(), meteredCounter()]);
     expect(meter).to.equal(resolvedCount);
   });

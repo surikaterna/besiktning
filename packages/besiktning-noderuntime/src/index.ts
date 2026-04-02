@@ -2,7 +2,17 @@ import os from 'os';
 import { monitorEventLoopDelay, PerformanceObserver } from 'perf_hooks';
 import { Collector, Dictionary, FieldValue } from 'besiktning';
 import { EventLoopUtilizationSnapshot, CpuSnapshot, GcSnapshot, RuntimeMetricsOptions } from './types';
-import { clamp, ensurePositive, toMilliseconds, getCpuSnapshot, getCpuSnapshotAndCount, getGcKind, getEventLoopUtilization, getHistogramCount } from './util';
+import {
+  clamp,
+  ensurePositive,
+  toMilliseconds,
+  getCpuSnapshot,
+  getCpuSnapshotAndCount,
+  getGcKind,
+  getEventLoopUtilization,
+  getHistogramCount
+} from './util';
+
 type EventLoopDelayHistogram = ReturnType<typeof monitorEventLoopDelay>;
 
 export default class NodeRuntimeMetrics {
@@ -150,7 +160,9 @@ export default class NodeRuntimeMetrics {
     if (this.gcObserver) {
       return;
     }
-    const supportedEntryTypes = (PerformanceObserver as typeof PerformanceObserver & { supportedEntryTypes?: string[] }).supportedEntryTypes || [];
+    const supportedEntryTypes = (PerformanceObserver as typeof PerformanceObserver & {
+      supportedEntryTypes?: string[]
+    }).supportedEntryTypes || [];
     if (!supportedEntryTypes.includes('gc')) {
       return;
     }
@@ -171,11 +183,13 @@ export default class NodeRuntimeMetrics {
     const mergedTags: Dictionary<string> = {};
     if (this.staticTags) {
       Object.keys(this.staticTags).forEach(key => {
+        // @ts-ignore
         mergedTags[key] = this.staticTags![key];
       });
     }
     if (tags) {
       Object.keys(tags).forEach(key => {
+        // @ts-ignore
         mergedTags[key] = tags[key];
       });
     }

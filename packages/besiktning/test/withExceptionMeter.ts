@@ -119,7 +119,7 @@ describe('@withExceptionMeter', function () {
       await meteredReject(30);
       await meteredReject(20);
       await Promise.reject();
-    } catch (err) {
+    } catch (err: any) {
       if (err.message === 'metered') {
         rejectionCount++;
       }

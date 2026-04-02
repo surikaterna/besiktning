@@ -28,7 +28,7 @@ describe('@withTimer', function () {
         key: 'async_interval'
       })
       wait(ms: number) {
-        return new Promise((resolve, reject) => setTimeout(() => resolve(), ms));
+        return new Promise((resolve, reject) => setTimeout(() => resolve(true), ms));
       }
     }
     const test = new Test();
