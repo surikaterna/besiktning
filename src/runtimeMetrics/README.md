@@ -93,3 +93,5 @@ A sample dashboard is included at:
 - `src/runtimeMetrics/grafana-dashboard.sample.json`
 
 Import it in Grafana, select your InfluxDB datasource, and adjust the `measurement` template variable if you use a different measurement name than `node_runtime`.
+
+The sample dashboard includes a `hostname` selector that filters all panels by the emitted hostname tag.
