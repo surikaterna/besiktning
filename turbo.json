@@ -1,0 +1,19 @@
+{
+  "$schema": "https://turborepo.dev/schema.json",
+  "tasks": {
+    "compile": {
+      "outputs": ["lib/**"]
+    },
+    "test": {
+      "outputs": []
+    },
+    "test.watch": {
+      "persistent": true,
+      "cache": false
+    },
+    "compile.watch": {
+      "persistent": true,
+      "cache": false
+    }
+  }
+}

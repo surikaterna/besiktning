@@ -1,9 +1,7 @@
-import chai from 'chai';
+import { expect } from 'chai';
 import Collector from '../src/Collector';
 import { withExceptionMeter } from '../src/decorators';
 import { FieldValue } from '../src/types';
-
-const should = chai.should();
 
 let exceptionMarks: FieldValue[] = [];
 
@@ -36,7 +34,7 @@ describe('@withExceptionMeter', function () {
         rejectionCount++;
       }
     }
-    exceptionMarks.length.should.equal(rejectionCount);
+    expect(exceptionMarks.length).to.equal(rejectionCount);
   });
 
   it('should count number of thrown exceptions', function () {
@@ -62,7 +60,7 @@ describe('@withExceptionMeter', function () {
       }
     }
     const markCount = (exceptionMarks as number[]).reduce((sum: number, num: number) => sum + num, 0);
-    markCount.should.equal(exceptionCount);
+    expect(markCount).to.equal(exceptionCount);
   });
 
   it('should propagate metered exception', async function () {
@@ -86,7 +84,7 @@ describe('@withExceptionMeter', function () {
       .then(() => {})
       .then(() => {})
       .catch(err => messages.push(err.message));
-    [exceptionMarks.length, ...messages].should.eql([2, 'Test1', 'Not an error', 'Test2']);
+    expect([exceptionMarks.length, ...messages]).to.deep.equal([2, 'Test1', 'Not an error', 'Test2']);
   });
 
   it('should work with synchronous functions', function () {
@@ -106,7 +104,7 @@ describe('@withExceptionMeter', function () {
         exceptionCount++;
       }
     }
-    exceptionMarks.length.should.equal(exceptionCount);
+    expect(exceptionMarks.length).to.equal(exceptionCount);
   });
 
   it('should work with asynchronous functions', async function () {
@@ -121,12 +119,12 @@ describe('@withExceptionMeter', function () {
       await meteredReject(30);
       await meteredReject(20);
       await Promise.reject();
-    } catch (err) {
+    } catch (err: any) {
       if (err.message === 'metered') {
         rejectionCount++;
       }
     }
-    exceptionMarks.length.should.equal(rejectionCount);
+    expect(exceptionMarks.length).to.equal(rejectionCount);
   });
 
   it("should propagate target's error when collector crashes", function () {
@@ -145,6 +143,6 @@ describe('@withExceptionMeter', function () {
       }
     }
     const test = new Test();
-    test.fail.should.throw(targetErr);
+    expect(test.fail.bind(test)).to.throw(targetErr);
   });
 });

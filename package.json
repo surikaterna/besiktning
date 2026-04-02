@@ -1,36 +1,44 @@
 {
   "name": "besiktning",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "prettier": "prettier-config-surikaterna",
   "scripts": {
-    "compile": "tsc",
-    "compile.watch": "tsc --watch",
-    "prettier": "prettier --write \"{src,test}/**/*.ts\"",
-    "test": "cross-env TS_NODE_FILES=true mocha",
-    "test.watch": "cross-env TS_NODE_FILES=true mocha --watch",
+    "compile": "turbo compile",
+    "compile.watch": "turbo compile.watch",
+    "test": "turbo test",
+    "test.watch": "turbo test.watch",
     "prepublishOnly": "npm test && npm run compile"
   },
   "author": "Surikat AB",
   "license": "MIT",
   "devDependencies": {
-    "@types/chai": "^4.2.11",
-    "@types/mocha": "^7.0.2",
-    "@types/node": "^14.0.14",
-    "@types/sinon": "^9.0.4",
-    "chai": "^4.2.0",
+    "@types/node": "^24.12.0",
+    "@types/chai": "^5.2.3",
+    "@types/mocha": "^10.0.10",
+    "@types/sinon": "^21.0.0",
+    "chai": "^6.2.2",
     "cross-env": "^7.0.2",
-    "mocha": "^8.0.1",
+    "mocha": "^11.7.5",
     "prettier": "^2.0.5",
     "prettier-config-surikaterna": "^1.0.0",
-    "sinon": "^9.0.2",
+    "sinon": "^21.0.3",
+    "slf": ">=1.0.3",
     "ts-node": "^8.10.2",
-    "typescript": "^3.9.6",
-    "slf": ">=1.0.3"
+    "turbo": "^2.9.3",
+    "typescript": "^5.9.3"
+  },
+  "overrides": {
+    "serialize-javascript": "^7.0.5",
+    "diff": "^8.0.4"
   },
   "peerDependencies": {
     "slf": ">=1.0.3"
-  }
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "packageManager": "npm@11.0.0"
 }

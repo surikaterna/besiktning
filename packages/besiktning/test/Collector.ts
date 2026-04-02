@@ -1,15 +1,10 @@
-import chai from 'chai';
-import sinon from 'sinon';
-import { Logger } from 'slf';
+import { LoggerFactory } from 'slf';
+import { expect } from 'chai';
 import Collector from '../src/Collector';
 import { MeasurementPayload } from '../src/types';
 
-const should = chai.should();
-
 let logMessages: string[] = [];
 let evaluated = {};
-
-const sandbox = sinon.createSandbox();
 
 describe('Collector', function () {
   beforeEach(function () {
@@ -18,22 +13,22 @@ describe('Collector', function () {
   });
 
   afterEach(function () {
-    sandbox.restore();
+    LoggerFactory.setFactory(null);
   });
 
   it('should set collector function', function () {
-    Collector.set(payload => {});
+    Collector.set(() => {});
     const globalCollect = global?.__besiktning?.collect;
-    should.exist(globalCollect);
-    globalCollect?.should.be.a('function');
+    expect(globalCollect).to.exist;
+    expect(globalCollect).to.be.a('function');
   });
 
   it('should get collector function', function () {
-    Collector.set(payload => {});
+    Collector.set(() => {});
     const collect = Collector.get();
     const globalCollect = global?.__besiktning?.collect;
-    should.exist(globalCollect);
-    globalCollect?.should.eql(collect);
+    expect(globalCollect).to.exist;
+    expect(globalCollect).to.equal(collect);
   });
 
   it('should evaluate measurement payload', function () {
@@ -66,7 +61,7 @@ describe('Collector', function () {
       instrument: 'test',
       target: 'test'
     };
-    evaluated.should.eql(expectedPayload);
+    expect(evaluated).to.deep.equal(expectedPayload);
   });
 
   it('should not crash on measurement callback error', function () {
@@ -80,7 +75,7 @@ describe('Collector', function () {
       instrument: 'test_instrument',
       target: 'test_target'
     };
-    Collector.get()?.bind(null, payload, []).should.not.throw();
+    expect(Collector.get()?.bind(null, payload, [])).to.not.throw();
   });
 
   it('should not crash on key callback error', function () {
@@ -94,7 +89,7 @@ describe('Collector', function () {
       instrument: 'test_instrument',
       target: 'test_target'
     };
-    Collector.get()?.bind(null, payload, []).should.not.throw();
+    expect(Collector.get()?.bind(null, payload, [])).to.not.throw();
   });
 
   it('should not crash on tags callback error', function () {
@@ -109,7 +104,7 @@ describe('Collector', function () {
       instrument: 'test_instrument',
       target: 'test_target'
     };
-    Collector.get()?.bind(null, payload, []).should.not.throw();
+    expect(Collector.get()?.bind(null, payload, [])).to.not.throw();
   });
 
   it('should not crash on apply callback error', function () {
@@ -124,7 +119,7 @@ describe('Collector', function () {
       instrument: 'test_instrument',
       target: 'test_target'
     };
-    Collector.get()?.bind(null, payload, []).should.not.throw();
+    expect(Collector.get()?.bind(null, payload, [])).to.not.throw();
   });
 
   it('should not crash on collector error', function () {
@@ -138,10 +133,15 @@ describe('Collector', function () {
       instrument: 'test_instrument',
       target: 'test_target'
     };
-    Collector.get()?.bind(null, payload, []).should.not.throw();
+    expect(Collector.get()?.bind(null, payload, [])).to.not.throw();
   });
 
   it('should log error on failure', function () {
+    const logEvents: Array<{ level: string; params: unknown[] }> = [];
+    LoggerFactory.setFactory((...events: Array<{ level: string; params: unknown[] }>) => {
+      logEvents.push(...events);
+    });
+
     Collector.set(() => {
       throw new Error('Collector crashed');
     });
@@ -152,15 +152,19 @@ describe('Collector', function () {
       instrument: 'payload.instrument',
       target: 'payload.target'
     };
-    sandbox.replace(Logger.prototype, 'error', function (err: unknown) {
-      if (err instanceof Error) {
-        logMessages.push(err.message);
-      } else {
-        logMessages.push(err as string);
-      }
-    });
     Collector.get()?.call(null, payload, []);
+
+    logMessages = logEvents
+      .filter(event => event.level === 'error')
+      .map(event => {
+        const err = event.params[0];
+        if (err instanceof Error) {
+          return err.message;
+        }
+        return `${err ?? ''}`;
+      });
+
     const expectedMessages = ['Collector crashed', 'Failed to collect metrics from "payload.target" with "payload.instrument"'];
-    logMessages.should.eql(expectedMessages);
+    expect(logMessages).to.deep.equal(expectedMessages);
   });
 });

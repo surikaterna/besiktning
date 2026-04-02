@@ -28,13 +28,16 @@ type MessageBuffer = NonNullable<string[]>;
 export function parseUri(uri: string): [string, number] {
   const uriParts = uri?.split(':') ?? [];
   const host = uriParts[uriParts.length - 2]?.replace(/^\/*/, '');
+  // @ts-ignore
   const port = parseInt(uriParts[uriParts.length - 1], 10);
+  // @ts-ignore
   return [host === '' ? 'localhost' : host, isNaN(port) ? 8094 : port];
 }
 
 function serialize(itemSerializer: (key: string, value: FieldValue) => string, dict: { [key: string]: FieldValue }) {
   return Object.keys(dict)
     .sort()
+    // @ts-ignore
     .map(key => itemSerializer(key, dict[key]))
     .join(',');
 }
