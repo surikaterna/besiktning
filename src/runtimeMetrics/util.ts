@@ -40,21 +40,25 @@ export function toMilliseconds(nanoseconds: number): number {
 }
 
 export function getCpuSnapshot(): CpuSnapshot {
+  return getCpuSnapshotAndCount().snapshot;
+}
+
+export function getCpuSnapshotAndCount(): { snapshot: CpuSnapshot; count: number } {
   const cpus = os.cpus();
-  return cpus.reduce(
-    (snapshot: CpuSnapshot, cpu) => {
+  const snapshot = cpus.reduce(
+    (nextSnapshot: CpuSnapshot, cpu) => {
       const cpuTotal = cpu.times.user + cpu.times.nice + cpu.times.sys + cpu.times.irq + cpu.times.idle;
       return {
-        idle: snapshot.idle + cpu.times.idle,
-        total: snapshot.total + cpuTotal
+        idle: nextSnapshot.idle + cpu.times.idle,
+        total: nextSnapshot.total + cpuTotal
       };
     },
     { idle: 0, total: 0 }
   );
-}
-
-export function getCpuCount(): number {
-  return Math.max(1, os.cpus().length);
+  return {
+    snapshot,
+    count: Math.max(1, cpus.length)
+  };
 }
 
 export function getGcKind(kind: number | undefined): string {

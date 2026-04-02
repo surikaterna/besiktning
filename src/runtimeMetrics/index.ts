@@ -2,7 +2,7 @@ import { monitorEventLoopDelay, PerformanceObserver } from 'perf_hooks';
 import Collector from '../Collector';
 import { Dictionary, FieldValue } from '../types';
 import { EventLoopUtilizationSnapshot, CpuSnapshot, GcSnapshot, RuntimeMetricsOptions } from './types';
-import { clamp, ensurePositive, toMilliseconds, getCpuSnapshot, getCpuCount, getGcKind, getEventLoopUtilization, getHistogramCount } from './util';
+import { clamp, ensurePositive, toMilliseconds, getCpuSnapshot, getCpuSnapshotAndCount, getGcKind, getEventLoopUtilization, getHistogramCount } from './util';
 type EventLoopDelayHistogram = ReturnType<typeof monitorEventLoopDelay>;
 
 export default class NodeRuntimeMetrics {
@@ -96,12 +96,13 @@ export default class NodeRuntimeMetrics {
     this.previousProcessCpuUsage = currentProcessCpu;
     this.previousCpuWallClockMs = now;
 
-    const hostCpuSnapshot = getCpuSnapshot();
+    const hostCpuSample = getCpuSnapshotAndCount();
+    const hostCpuSnapshot = hostCpuSample.snapshot;
     const hostIdleDelta = Math.max(0, hostCpuSnapshot.idle - this.previousHostCpu.idle);
     const hostTotalDelta = Math.max(0, hostCpuSnapshot.total - this.previousHostCpu.total);
     this.previousHostCpu = hostCpuSnapshot;
 
-    const cpuCount = getCpuCount();
+    const cpuCount = hostCpuSample.count;
     const processCoreUtilization = clamp(processCpuUsedMicros / elapsedMicros, 0, Number.POSITIVE_INFINITY);
     const processMachineUtilization = clamp(processCoreUtilization / cpuCount, 0, Number.POSITIVE_INFINITY);
     const hostUtilization = hostTotalDelta > 0 ? clamp(1 - hostIdleDelta / hostTotalDelta) : 0;
