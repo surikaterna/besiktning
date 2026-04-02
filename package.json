@@ -6,11 +6,10 @@
   "types": "lib/index.d.ts",
   "prettier": "prettier-config-surikaterna",
   "scripts": {
-    "compile": "tsc",
-    "compile.watch": "tsc --watch",
-    "prettier": "prettier --write \"{src,test}/**/*.ts\"",
-    "test": "cross-env TS_NODE_FILES=true mocha",
-    "test.watch": "cross-env TS_NODE_FILES=true mocha --watch",
+    "compile": "turbo compile",
+    "compile.watch": "turbo compile.watch",
+    "test": "turbo test",
+    "test.watch": "turbo test.watch",
     "prepublishOnly": "npm test && npm run compile"
   },
   "author": "Surikat AB",
@@ -26,11 +25,16 @@
     "prettier": "^2.0.5",
     "prettier-config-surikaterna": "^1.0.0",
     "sinon": "^9.0.2",
+    "slf": ">=1.0.3",
     "ts-node": "^8.10.2",
-    "typescript": "^3.9.6",
-    "slf": ">=1.0.3"
+    "turbo": "^2.9.3",
+    "typescript": "^3.9.6"
   },
   "peerDependencies": {
     "slf": ">=1.0.3"
-  }
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "packageManager": "npm@11.0.0"
 }

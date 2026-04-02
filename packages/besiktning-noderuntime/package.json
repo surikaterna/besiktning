@@ -1,0 +1,27 @@
+{
+  "name": "besiktning-noderuntime",
+  "version": "0.1.0",
+  "description": "",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "prettier": "prettier-config-surikaterna",
+  "scripts": {
+    "compile": "tsc",
+    "compile.watch": "tsc --watch",
+    "prettier": "prettier --write \"{src,test}/**/*.ts\"",
+    "test": "cross-env TS_NODE_FILES=true mocha",
+    "test.watch": "cross-env TS_NODE_FILES=true mocha --watch",
+    "prepublishOnly": "npm test && npm run compile"
+  },
+  "author": "Surikat AB",
+  "license": "MIT",
+  "devDependencies": {
+  },
+  "peerDependencies": {
+    "slf": ">=1.0.3"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "packageManager": "npm@11.0.0"
+}

@@ -1,7 +1,6 @@
 import os from 'os';
 import { monitorEventLoopDelay, PerformanceObserver } from 'perf_hooks';
-import Collector from '../Collector';
-import { Dictionary, FieldValue } from '../types';
+import { Collector, Dictionary, FieldValue } from 'besiktning';
 import { EventLoopUtilizationSnapshot, CpuSnapshot, GcSnapshot, RuntimeMetricsOptions } from './types';
 import { clamp, ensurePositive, toMilliseconds, getCpuSnapshot, getCpuSnapshotAndCount, getGcKind, getEventLoopUtilization, getHistogramCount } from './util';
 type EventLoopDelayHistogram = ReturnType<typeof monitorEventLoopDelay>;

@@ -1,6 +1,8 @@
-import Collector from '../src/Collector';
-import NodeRuntimeMetrics from '../src/runtimeMetrics';
-import { EvaluatedMeasurementPayload } from '../src/types';
+import { Collector, EvaluatedMeasurementPayload } from 'besiktning';
+import NodeRuntimeMetrics from '../src';
+// @ts-ignore
+import chai from 'chai';
+const should = chai.should();
 
 describe('NodeRuntimeMetrics', function () {
   let payloads: EvaluatedMeasurementPayload[] = [];

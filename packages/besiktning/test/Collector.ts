@@ -3,6 +3,7 @@ import sinon from 'sinon';
 import { Logger } from 'slf';
 import Collector from '../src/Collector';
 import { MeasurementPayload } from '../src/types';
+import { expect } from 'chai';
 
 const should = chai.should();
 

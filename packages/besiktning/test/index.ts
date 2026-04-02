@@ -11,6 +11,5 @@ describe('index', function () {
     should.exist(besiktning.withExceptionMeter);
     should.exist(besiktning.Collector);
     should.exist(besiktning.telegrafFactory);
-    should.exist(besiktning.NodeRuntimeMetrics);
   });
 });

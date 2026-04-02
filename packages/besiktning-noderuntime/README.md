@@ -90,7 +90,7 @@ All metrics are emitted under the configured `measurement` (default `node_runtim
 
 A sample dashboard is included at:
 
-- `src/runtimeMetrics/grafana-dashboard.sample.json`
+- `./grafana-dashboard.sample.json`
 
 Import it in Grafana, select your InfluxDB datasource, and adjust the `measurement` template variable if you use a different measurement name than `node_runtime`.
 

@@ -1,4 +1,4 @@
-import { Dictionary } from '../types';
+import { Dictionary } from 'besiktning';
 
 export interface EventLoopUtilizationSnapshot {
   idle: number;
