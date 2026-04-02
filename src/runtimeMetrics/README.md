@@ -33,7 +33,7 @@ runtimeMetrics.start();
 | `measurement` | `string` | `node_runtime` | Measurement name used for all emitted runtime metrics. |
 | `tags` | `Dictionary<string>` | `undefined` | Static tags attached to every metric from this instance. |
 | `sampleIntervalMs` | `number` | `5000` | Interval for periodic background sampling after `start()` is called. Invalid/non-positive values fall back to default. |
-| `eventLoopResolutionMs` | `number` | `20` | Resolution for event loop delay histogram sampling. Invalid/non-positive values fall back to default. |
+| `eventLoopResolutionMs` | `number` | `20` | Resolution for event loop delay histogram sampling. Invalid/non-positive values fall back to default. The effective internal resolution is rounded and clamped to a minimum of `1` ms. |
 | `eventLoopBlockingThresholdMs` | `number` | `50` | Threshold used for `event_loop.blocked` (`1` when max lag in sample window is at or above threshold). |
 | `singleThreadCpuThreshold` | `number` | `0.9` | Process core utilization threshold used for `cpu.single_thread_limited` detection. Clamped to `[0..1]`. |
 | `spareCpuHeadroomThreshold` | `number` | `0.25` | Required host CPU headroom for `cpu.single_thread_limited` to be set. Clamped to `[0..1]`. |
@@ -83,5 +83,4 @@ All metrics are emitted under the configured `measurement` (default `node_runtim
 | `gc.pause.max_ms` | milliseconds | periodic sampler (`start`) | Max GC pause duration in current window. |
 | `gc.pause.mean_ms` | milliseconds | periodic sampler (`start`) | Mean GC pause duration in current window. |
 | `gc.pause_ms` | milliseconds | GC performance observer | Emitted per GC event, with `kind` tag (`major`, `minor`, `incremental`, `weakcb`, `unknown`). |
-
 

@@ -27,10 +27,11 @@ export default class NodeRuntimeMetrics {
     this.staticTags = options.tags;
     this.sampleIntervalMs = ensurePositive(options.sampleIntervalMs, 5000);
     const eventLoopResolutionMs = ensurePositive(options.eventLoopResolutionMs, 20);
+    const eventLoopResolution = Math.max(1, Math.round(eventLoopResolutionMs));
     this.eventLoopBlockingThresholdMs = ensurePositive(options.eventLoopBlockingThresholdMs, 50);
     this.singleThreadCpuThreshold = clamp(options.singleThreadCpuThreshold ?? 0.9, 0, 1);
     this.spareCpuHeadroomThreshold = clamp(options.spareCpuHeadroomThreshold ?? 0.25, 0, 1);
-    this.eventLoopHistogram = monitorEventLoopDelay({ resolution: Math.round(eventLoopResolutionMs) });
+    this.eventLoopHistogram = monitorEventLoopDelay({ resolution: eventLoopResolution });
   }
 
   start(): void {
