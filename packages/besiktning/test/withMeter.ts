@@ -1,8 +1,6 @@
-import chai from 'chai';
+import { expect } from 'chai';
 import Collector from '../src/Collector';
 import { withMeter } from '../src/decorators';
-
-const should = chai.should();
 
 let meter = 0;
 
@@ -31,7 +29,7 @@ describe('@withMeter', function () {
     const expectedInvocationCount = 3;
     const promises = [0, 1, 2, 3, 4, 5].map((num: number) => (num % 2 === 0 ? test.ignoredNoop() : test.meteredNoop()));
     await Promise.all(promises);
-    meter.should.equal(expectedInvocationCount);
+    expect(meter).to.equal(expectedInvocationCount);
   });
 
   it('should work in `Promise` chain', async function () {
@@ -55,7 +53,7 @@ describe('@withMeter', function () {
       .then(() => test.meteredNoop())
       .then(() => test.ignoredNoop())
       .then(() => test.ignoredNoop());
-    meter.should.equal(expectedInvocationCount);
+    expect(meter).to.equal(expectedInvocationCount);
   });
 
   it('should count number of method invocations synchronously', function () {
@@ -85,7 +83,7 @@ describe('@withMeter', function () {
     test.meteredNoop();
     const expectedValue = 64;
     const expectedIndex = 6;
-    [nextIndex, nextValue].should.eql([expectedIndex, expectedValue]);
+    expect([nextIndex, nextValue]).to.deep.equal([expectedIndex, expectedValue]);
   });
 
   it('should work with synchronous functions', function () {
@@ -99,7 +97,7 @@ describe('@withMeter', function () {
     meteredCounter();
     meteredCounter();
     meteredCounter();
-    meter.should.equal(expectedCount);
+    expect(meter).to.equal(expectedCount);
   });
 
   it('should work with asynchronous functions', async function () {
@@ -109,7 +107,7 @@ describe('@withMeter', function () {
       key: 'async_count'
     })((): Promise<number> => new Promise(resolve => setTimeout(() => resolve(resolvedCount++), 100)));
     await Promise.all([meteredCounter(), meteredCounter(), meteredCounter()]);
-    meter.should.equal(resolvedCount);
+    expect(meter).to.equal(resolvedCount);
   });
 
   it('should ignore collector crash', function () {
@@ -132,6 +130,8 @@ describe('@withMeter', function () {
     }
     const test = new Test();
     const expectedCount = 1;
-    test.increment.bind(test).should.not.throw().and.equal(expectedCount);
+    const increment = test.increment.bind(test);
+    expect(increment).to.not.throw();
+    expect(test.count).to.equal(expectedCount);
   });
 });

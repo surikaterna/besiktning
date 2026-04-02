@@ -1,8 +1,6 @@
+import { expect } from 'chai';
 import { Collector, EvaluatedMeasurementPayload } from 'besiktning';
 import NodeRuntimeMetrics from '../src';
-// @ts-ignore
-import chai from 'chai';
-const should = chai.should();
 
 describe('NodeRuntimeMetrics', function () {
   let payloads: EvaluatedMeasurementPayload[] = [];
@@ -29,11 +27,11 @@ describe('NodeRuntimeMetrics', function () {
     await new Promise(resolve => setTimeout(resolve, 30));
 
     const keys = payloads.map(payload => Object.keys(payload.fields)[0]);
-    keys.should.include('event_loop.lag.mean_ms');
-    keys.should.include('event_loop.blocked');
-    keys.should.include('cpu.process.core_utilization');
-    keys.should.include('cpu.single_thread_limited');
-    keys.should.include('memory.rss_bytes');
-    keys.should.include('gc.pause.count');
+    expect(keys).to.include('event_loop.lag.mean_ms');
+    expect(keys).to.include('event_loop.blocked');
+    expect(keys).to.include('cpu.process.core_utilization');
+    expect(keys).to.include('cpu.single_thread_limited');
+    expect(keys).to.include('memory.rss_bytes');
+    expect(keys).to.include('gc.pause.count');
   });
 });

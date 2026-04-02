@@ -1,15 +1,12 @@
 import dgram from 'dgram';
 import sinon from 'sinon';
-import chai from 'chai';
+import { expect } from 'chai';
 import Collector from '../src/Collector';
 import telegrafFactory, { getInfluxLine, parseUri, Telegraf } from '../src/collectors/telegrafFactory';
 import { withGauge } from '../src/decorators';
 
 const BUFFER_SIZE = 3;
 const FLUSH_INTERVAL = 5 * 1000;
-
-const should = chai.should();
-
 
 function sum(a: number, b: number): number {
   return a + b;
@@ -64,13 +61,12 @@ describe('Telegraf module', function () {
       gaugedAdder(2, 3);
       clock.tick(1000);
       gaugedAdder(3, 4);
-      const sums = [3, 5, 7];
       const expectedLines = [
         'besiktning.send_udp,tag1=tag_value1,tag2=tag_value2 sum=3 0000000\n',
         'besiktning.send_udp,tag1=tag_value1,tag2=tag_value2 sum=5 1000000000\n',
         'besiktning.send_udp,tag1=tag_value1,tag2=tag_value2 sum=7 2000000000\n'
       ];
-      linesSentToMockSocket.should.eql(expectedLines);
+      expect(linesSentToMockSocket).to.deep.equal(expectedLines);
     });
 
     it('should buffer data', function () {
@@ -88,7 +84,7 @@ describe('Telegraf module', function () {
         clock.tick(1000);
         gaugedAdder(2 + i, 3 + i);
       }
-      linesSentToMockSocket.should.be.empty;
+      expect(linesSentToMockSocket).to.be.empty;
     });
 
     it('should automatically flush buffer after elapsed time interval', function () {
@@ -104,7 +100,7 @@ describe('Telegraf module', function () {
       gaugedAdder(1, 1);
       clock.tick(FLUSH_INTERVAL);
       const expectedMessages = ['besiktning.buffer,tag1=tag_value1,tag2=tag_value2 sum=2 0000000\n'];
-      linesSentToMockSocket.should.eql(expectedMessages);
+      expect(linesSentToMockSocket).to.deep.equal(expectedMessages);
     });
   });
 
@@ -118,7 +114,7 @@ describe('Telegraf module', function () {
       };
       const influxLine = getInfluxLine(payload);
       const expected = `test key=true ${timestamp}\n`;
-      influxLine.should.equal(expected);
+      expect(influxLine).to.equal(expected);
     });
 
     it('should transform payload without tags and timestamp', function () {
@@ -128,7 +124,7 @@ describe('Telegraf module', function () {
       };
       const influxLine = getInfluxLine(payload);
       const expected = /^test key=42 [0-9]{19}\n$/;
-      influxLine.should.match(expected);
+      expect(influxLine).to.match(expected);
     });
 
     it('should transform payload', function () {
@@ -144,7 +140,7 @@ describe('Telegraf module', function () {
       };
       const influxLine = getInfluxLine(payload);
       const expected = `test,first=one,second=two key="a_string" ${timestamp}\n`;
-      influxLine.should.equal(expected);
+      expect(influxLine).to.equal(expected);
     });
 
     it('should escape special characters', function () {
@@ -157,29 +153,29 @@ describe('Telegraf module', function () {
       };
       const influxLine = getInfluxLine(payload);
       const expected = `test\\,one\\ two,t\\ a\\,g=val"u\\ e k\\ e\\,y="val\\"u e" ${timestamp}\n`;
-      influxLine.should.equal(expected);
+      expect(influxLine).to.equal(expected);
     });
   });
 
   describe('parseUri', function () {
     it('should parse a URI with hostname', function () {
       const parsed = parseUri('udp://telegraf:8094');
-      parsed.should.eql(['telegraf', 8094]);
+      expect(parsed).to.deep.equal(['telegraf', 8094]);
     });
 
     it('should parse a URI with IPv4 address', function () {
       const parsed = parseUri('udp://127.0.0.1:8094');
-      parsed.should.eql(['127.0.0.1', 8094]);
+      expect(parsed).to.deep.equal(['127.0.0.1', 8094]);
     });
 
     it('should parse a URI without IPv4 address or hostname', function () {
       const parsed = parseUri('udp://:8094');
-      parsed.should.eql(['localhost', 8094]);
+      expect(parsed).to.deep.equal(['localhost', 8094]);
     });
 
     it('should parse a URI without scheme', function () {
       const parsed = parseUri('telegraf:8094');
-      parsed.should.eql(['telegraf', 8094]);
+      expect(parsed).to.deep.equal(['telegraf', 8094]);
     });
   });
 });

@@ -1,9 +1,8 @@
-import chai from 'chai';
+import { expect } from 'chai';
 import Collector from '../src/Collector';
 import { withGauge } from '../src/decorators';
 import { FieldValue } from '../src/types';
 
-const should = chai.should();
 let gaugedValues: Array<FieldValue | Promise<FieldValue>> = [];
 
 describe('@withGauge', function () {
@@ -34,7 +33,7 @@ describe('@withGauge', function () {
     ].map(args => test.add(...(args as [number, number])));
     await Promise.all(promises);
     const sum = (gaugedValues as number[]).reduce((sum: number, num: number) => sum + num, 0);
-    sum.should.equal(expectedSum);
+    expect(sum).to.equal(expectedSum);
   });
 
   it('should collect return values in a `Promise` chain', async function () {
@@ -69,7 +68,7 @@ describe('@withGauge', function () {
       .then(() => test.ignore('d'))
       .then(() => test.echo('d'));
     const expectedStrings = ['a_0', 'b_1', 'b', 'c_2', 'd'];
-    gaugedValues.should.eql(expectedStrings);
+    expect(gaugedValues).to.deep.equal(expectedStrings);
   });
 
   it('should work with synchronous functions', function () {
@@ -81,7 +80,7 @@ describe('@withGauge', function () {
     expectedNumbers.push(gaugedAdder(1, 1));
     expectedNumbers.push(gaugedAdder(2, 2));
     expectedNumbers.push(gaugedAdder(3, 3));
-    gaugedValues.should.eql(expectedNumbers);
+    expect(gaugedValues).to.deep.equal(expectedNumbers);
   });
 
   it('should work with asynchronous functions', async function () {
@@ -94,7 +93,7 @@ describe('@withGauge', function () {
     expectedNumbers.push(gaugedAdder(1, 1));
     expectedNumbers.push(gaugedAdder(2, 2));
     expectedNumbers.push(gaugedAdder(3, 3));
-    gaugedValues.should.eql(await Promise.all(expectedNumbers));
+    expect(gaugedValues).to.deep.equal(await Promise.all(expectedNumbers));
   });
 
   it('should ignore collector crash', function () {
@@ -118,6 +117,8 @@ describe('@withGauge', function () {
     }
     const test = new Test();
     const str = 'test';
-    test.store.bind(test, str).should.not.throw().and.equal(str.length);
+    const store = test.store.bind(test, str);
+    expect(store).to.not.throw();
+    expect(test.storedString).to.equal(str);
   });
 });

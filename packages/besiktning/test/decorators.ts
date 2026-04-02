@@ -1,9 +1,7 @@
-import chai from 'chai';
+import { expect } from 'chai';
 import { createDecorator } from '../src/decorators';
 import Collector from '../src/Collector';
 import { FieldCollector, EvaluatedMeasurementPayload } from '../src/types';
-
-const should = chai.should();
 
 function mockInstrument<F extends (...args: any) => any>(collect: FieldCollector, func: F): ReturnType<F> {
   collect(0);
@@ -27,7 +25,7 @@ describe('decorators', function () {
         }
       }
       const test = new Test();
-      test.isThis().should.be.true;
+      expect(test.isThis()).to.be.true;
     });
   });
 });

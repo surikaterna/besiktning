@@ -2,5 +2,6 @@
   "extension": ["ts"],
   "spec": "test/**/*.ts",
   "watch-files": ["src/", "test/**/*.ts"],
-  "require": ["ts-node/register"]
+  "require": ["ts-node/register/transpile-only"],
+  "node-option": ["no-experimental-strip-types"]
 }

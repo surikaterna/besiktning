@@ -1,11 +1,8 @@
-import chai from 'chai';
 import sinon from 'sinon';
 import { Logger } from 'slf';
+import { expect } from 'chai';
 import Collector from '../src/Collector';
 import { MeasurementPayload } from '../src/types';
-import { expect } from 'chai';
-
-const should = chai.should();
 
 let logMessages: string[] = [];
 let evaluated = {};
@@ -23,18 +20,18 @@ describe('Collector', function () {
   });
 
   it('should set collector function', function () {
-    Collector.set(payload => {});
+    Collector.set(() => {});
     const globalCollect = global?.__besiktning?.collect;
-    should.exist(globalCollect);
-    globalCollect?.should.be.a('function');
+    expect(globalCollect).to.exist;
+    expect(globalCollect).to.be.a('function');
   });
 
   it('should get collector function', function () {
-    Collector.set(payload => {});
+    Collector.set(() => {});
     const collect = Collector.get();
     const globalCollect = global?.__besiktning?.collect;
-    should.exist(globalCollect);
-    globalCollect?.should.eql(collect);
+    expect(globalCollect).to.exist;
+    expect(globalCollect).to.equal(collect);
   });
 
   it('should evaluate measurement payload', function () {
@@ -67,7 +64,7 @@ describe('Collector', function () {
       instrument: 'test',
       target: 'test'
     };
-    evaluated.should.eql(expectedPayload);
+    expect(evaluated).to.deep.equal(expectedPayload);
   });
 
   it('should not crash on measurement callback error', function () {
@@ -81,7 +78,7 @@ describe('Collector', function () {
       instrument: 'test_instrument',
       target: 'test_target'
     };
-    Collector.get()?.bind(null, payload, []).should.not.throw();
+    expect(Collector.get()?.bind(null, payload, [])).to.not.throw();
   });
 
   it('should not crash on key callback error', function () {
@@ -95,7 +92,7 @@ describe('Collector', function () {
       instrument: 'test_instrument',
       target: 'test_target'
     };
-    Collector.get()?.bind(null, payload, []).should.not.throw();
+    expect(Collector.get()?.bind(null, payload, [])).to.not.throw();
   });
 
   it('should not crash on tags callback error', function () {
@@ -110,7 +107,7 @@ describe('Collector', function () {
       instrument: 'test_instrument',
       target: 'test_target'
     };
-    Collector.get()?.bind(null, payload, []).should.not.throw();
+    expect(Collector.get()?.bind(null, payload, [])).to.not.throw();
   });
 
   it('should not crash on apply callback error', function () {
@@ -125,7 +122,7 @@ describe('Collector', function () {
       instrument: 'test_instrument',
       target: 'test_target'
     };
-    Collector.get()?.bind(null, payload, []).should.not.throw();
+    expect(Collector.get()?.bind(null, payload, [])).to.not.throw();
   });
 
   it('should not crash on collector error', function () {
@@ -139,7 +136,7 @@ describe('Collector', function () {
       instrument: 'test_instrument',
       target: 'test_target'
     };
-    Collector.get()?.bind(null, payload, []).should.not.throw();
+    expect(Collector.get()?.bind(null, payload, [])).to.not.throw();
   });
 
   it('should log error on failure', function () {
@@ -162,6 +159,6 @@ describe('Collector', function () {
     });
     Collector.get()?.call(null, payload, []);
     const expectedMessages = ['Collector crashed', 'Failed to collect metrics from "payload.target" with "payload.instrument"'];
-    logMessages.should.eql(expectedMessages);
+    expect(logMessages).to.deep.equal(expectedMessages);
   });
 });
