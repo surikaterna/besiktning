@@ -31,10 +31,14 @@
     "compile": "tsc",
     "compile.watch": "tsc --watch",
     "prettier": "prettier --write \"{src,test}/**/*.ts\"",
-    "test": "cross-env TS_NODE_FILES=true mocha",
-    "test:tracing-package": "npm run compile && node scripts/tracing-package-smoke.cjs",
+    "pretest": "npm run compile",
+    "test": "npm run test:unit --",
+    "posttest": "npm run test:artifact",
+    "test:unit": "cross-env TS_NODE_FILES=true mocha",
+    "test:artifact": "node scripts/tracing-package-smoke.cjs",
+    "test:tracing-package": "npm run compile && npm run test:artifact",
     "test.watch": "cross-env TS_NODE_FILES=true mocha --watch",
-    "prepublishOnly": "npm test && npm run compile"
+    "prepublishOnly": "npm test"
   },
   "author": "Surikat AB",
   "license": "MIT",

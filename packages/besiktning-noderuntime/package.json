@@ -10,13 +10,13 @@
     "compile.watch": "tsc --watch",
     "prettier": "prettier --write \"{src,test}/**/*.ts\"",
     "test": "cross-env TS_NODE_FILES=true mocha",
+    "test:unit": "npm test --",
     "test.watch": "cross-env TS_NODE_FILES=true mocha --watch",
     "prepublishOnly": "npm test && npm run compile"
   },
   "author": "Surikat AB",
   "license": "MIT",
-  "devDependencies": {
-  },
+  "devDependencies": {},
   "peerDependencies": {
     "slf": ">=1.0.3"
   },
