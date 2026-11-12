@@ -1,6 +1,6 @@
 const assert = require('node:assert/strict');
 const { execFileSync } = require('node:child_process');
-const { mkdtempSync, writeFileSync, copyFileSync, rmSync } = require('node:fs');
+const { mkdtempSync, readFileSync, writeFileSync, copyFileSync, rmSync } = require('node:fs');
 const { tmpdir } = require('node:os');
 const path = require('node:path');
 const vm = require('node:vm');
@@ -14,6 +14,10 @@ try {
   const packed = JSON.parse(run('npm', ['pack', '--json', '--ignore-scripts', '--pack-destination', scratch], packageDir));
   writeFileSync(path.join(scratch, 'package.json'), JSON.stringify({ private: true }));
   run('npm', ['install', '--ignore-scripts', '--omit=dev', '--no-audit', '--no-fund', path.join(scratch, packed[0].filename)]);
+  assert.deepEqual(
+    readFileSync(path.join(scratch, 'node_modules/besiktning/LICENSE')),
+    readFileSync(path.join(packageDir, '../../LICENSE'))
+  );
   const smoke = `
     import { trace, context, propagation, createTracing } from 'besiktning/tracing';
     import * as native from '@opentelemetry/api';
