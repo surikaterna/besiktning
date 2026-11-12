@@ -1,6 +1,6 @@
 # besiktning
 
-TS decorators for collecting Node metrics with OpenTelemetry or Telegraf.
+TS + Decorators to get Metrics with Node and Telegraf
 
 ## Install
 
@@ -8,36 +8,15 @@ TS decorators for collecting Node metrics with OpenTelemetry or Telegraf.
 $ npm install besiktning
 ```
 
-[slf](https://www.npmjs.com/package/slf) is a required peer dependency:
+[slf](https://www.npmjs.com/package/slf) is a peer-dependency:
 
 ```bash
 $ npm install slf
 ```
 
-The OpenTelemetry API is an optional peer dependency. Install it when using `otelFactory`; Telegraf-only consumers do not need it:
-
-```bash
-$ npm install @opentelemetry/api
-```
-
 ## API
 
-Initialize `besiktning` with the OpenTelemetry metrics API. Configure an SDK `MeterProvider` and exporter in the application before creating the collector.
-
-```typescript
-import { Collector, otelFactory } from 'besiktning';
-
-Collector.set(
-  otelFactory({
-    meterName: 'my-service',
-    prefix: 'my_service'
-  })
-);
-```
-
-The collector maps `withMeter` and `withExceptionMeter` to counters, `withTimer` to nanosecond histograms, and `withGauge` to gauges. Measurement names and keys form the OTEL metric name (`<prefix>.<measurement>.<key>`), while tags become attributes.
-
-The legacy Telegraf collector remains available:
+Initialize `besiktning`:
 
 ```typescript
 import { Collector, telegrafFactory } from 'besiktning';
@@ -53,10 +32,10 @@ Collector.set(telegraf);
 
 The API provides four method decorators for performing measurements:
 
-- `withExceptionMeter`: counts number of exceptions thrown by the target function
-- `withGauge`: collects return value of the target function
-- `withMeter`: counts number of invocations of the target function
-- `withTimer`: collects execution time of the target function
+-   `withExceptionMeter`: counts number of exceptions thrown by the target function
+-   `withGauge`: collects return value of the target function
+-   `withMeter`: counts number of invocations of the target function
+-   `withTimer`: collects execution time of the target function
 
 The decorators work with regular functions as well.
 
