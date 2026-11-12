@@ -2,6 +2,10 @@
 
 TS + Decorators to get Metrics with Node and Telegraf
 
+Browser-safe OpenTelemetry tracing is available separately via
+`besiktning/tracing`; see the [tracing API](packages/besiktning/README.md#tracing-node-and-browsers).
+Applications own SDK registration, context management, propagation and exporters.
+
 ## Install
 
 ```bash

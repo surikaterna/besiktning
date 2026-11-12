@@ -4,23 +4,54 @@
   "description": "",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./lib": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./tracing": {
+      "types": "./lib/tracing.d.ts",
+      "default": "./lib/tracing.js"
+    },
+    "./lib/*.js": "./lib/*.js",
+    "./lib/*.d.ts": "./lib/*.d.ts",
+    "./lib/*.map": "./lib/*.map",
+    "./lib/*": {
+      "types": "./lib/*.d.ts",
+      "default": "./lib/*.js"
+    },
+    "./*": "./*"
+  },
   "prettier": "prettier-config-surikaterna",
   "scripts": {
     "compile": "tsc",
     "compile.watch": "tsc --watch",
     "prettier": "prettier --write \"{src,test}/**/*.ts\"",
     "test": "cross-env TS_NODE_FILES=true mocha",
+    "test:tracing-package": "npm run compile && node scripts/tracing-package-smoke.cjs",
     "test.watch": "cross-env TS_NODE_FILES=true mocha --watch",
     "prepublishOnly": "npm test && npm run compile"
   },
   "author": "Surikat AB",
   "license": "MIT",
-  "devDependencies": {},
   "peerDependencies": {
     "slf": ">=1.0.3"
   },
   "workspaces": [
     "packages/*"
   ],
-  "packageManager": "npm@11.0.0"
+  "packageManager": "npm@11.0.0",
+  "dependencies": {
+    "@opentelemetry/api": "1.9.0"
+  },
+  "devDependencies": {
+    "@opentelemetry/context-async-hooks": "2.12.1",
+    "@opentelemetry/core": "2.12.1",
+    "@opentelemetry/sdk-trace-base": "2.12.1",
+    "esbuild": "0.27.0"
+  }
 }

@@ -16,6 +16,60 @@ $ npm install slf
 
 ## API
 
+### Tracing (Node and browsers)
+
+`besiktning/tracing` is a browser-safe facade over `@opentelemetry/api`. It
+re-exports the native API (including `Span`, `Context`, `trace`, `context` and
+`propagation`) and adds `withActiveSpan`. It does not load the metrics entry,
+register a provider, install a context manager/propagator, or configure an SDK,
+exporter or endpoint. Those are application responsibilities. With no provider,
+spans are OpenTelemetry no-ops. Async context continuity requires an
+application-installed context manager appropriate to the runtime.
+
+```typescript
+import { trace, withActiveSpan } from 'besiktning/tracing';
+
+const tracer = trace.getTracer('my-application');
+const value = withActiveSpan(tracer, 'calculate', span => {
+  span.setAttribute('input.count', 3);
+  return 42;
+});
+const loaded = await withActiveSpan(tracer, 'load', async span => {
+  return await loadData();
+});
+```
+
+Signature: `withActiveSpan(tracer, name, callback, options?, parentContext?)`.
+The callback receives the native span. Synchronous values/throws stay
+synchronous; Promises/thenables produce a Promise preserving the resolved value
+or rejection reason (not Promise identity). The helper owns the span and ends
+it once on completion: do not end it inside the callback. Failures set ERROR
+status; Error and string failures are also recorded as exceptions. Other thrown
+values are preserved without inventing exception data. Success leaves status
+unchanged. Options and explicit parent context are native OpenTelemetry types.
+
+For callback/event adapters, use native context capture, binding and propagation;
+there is no package-specific trace model:
+
+```typescript
+import { context, propagation, ROOT_CONTEXT, trace } from 'besiktning/tracing';
+
+const captured = context.active();
+const callback = context.bind(captured, onResult);
+registerCallback(callback); // binding preserves receiver and arguments
+const carrier: Record<string, string> = {};
+propagation.inject(captured, carrier); // requires an application propagator
+const parent = propagation.extract(ROOT_CONTEXT, carrier);
+const span = tracer.startSpan('callback-operation', {}, parent);
+context.with(trace.setSpan(parent, span), () => handleResult());
+span.end(); // manual spans have application-owned lifetimes
+```
+
+The metrics root and `besiktning/lib/*` imports remain available, including
+extensionless and explicit `.js` deep imports. The tracing subpath supports
+CommonJS, native Node ESM and browser bundlers; only this entry is intended as
+browser-safe.
+
 Initialize `besiktning`:
 
 ```typescript
