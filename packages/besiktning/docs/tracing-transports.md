@@ -53,19 +53,22 @@ Inject only toward trusted initial API origins under an explicit boundary policy
 not all requests or a domain-suffix wildcard. The accepted Lynx browser policy is
 **initial-destination-only**: preserve normal redirects even when the browser
 forwards `traceparent` and optional `tracestate` to another service. This is not
-redirect-safe propagation. The decision is accepted; regression coverage of this
-boundary remains pending. This documentation records the tradeoff, not a code fix.
+redirect-safe propagation. Independent audit of the actual app bootstrap with real
+Chromium fetch/XHR confirmed this boundary, including current redirect forwarding
+and no injection on direct third-party requests. This records the accepted tradeoff,
+not a redirect-safety guarantee across browser versions.
 Local HTTP span coverage does not imply outbound propagation. Exclude collector
 traffic from instrumentation to avoid recursion; final export privacy still applies.
 
 The approved transport policy permits W3C trace context only, not baggage or
 sensitive application data. Configure the application's transport propagator as
-trace-context-only and test the actual outgoing headers. The current Lynx browser
-bootstrap registers a composite including `W3CBaggagePropagator`; the generic
-`propagation.inject` example above follows that global configuration. Neither this
-guide nor accepting redirect forwarding proves the current setup excludes baggage.
-Configuration alignment and regression validation remain follow-up work, not changes
-made by this documentation correction.
+trace-context-only and test the actual outgoing headers. The current app-owned Lynx
+browser bootstrap registers only `W3CTraceContextPropagator`. Independently audited
+Chromium fetch/XHR tests confirm seeded active baggage remains locally accessible
+but is not injected, collector traffic is excluded, and serialized export privacy
+holds. Host-owned globals remain untouched; these results do not establish a host's
+propagator policy. The generic `propagation.inject` example above still follows the
+globally registered propagator and is not a facade-level baggage guarantee.
 
 Prefer fixed operation names and bounded structural fields: approved method/status,
 safe route templates, fixed outcome enums and bounded counts. Do not use URLs,
