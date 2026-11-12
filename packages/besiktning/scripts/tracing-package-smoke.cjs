@@ -15,10 +15,11 @@ try {
   writeFileSync(path.join(scratch, 'package.json'), JSON.stringify({ private: true }));
   run('npm', ['install', '--ignore-scripts', '--omit=dev', '--no-audit', '--no-fund', path.join(scratch, packed[0].filename)]);
   const smoke = `
-    import { trace, context, propagation, withActiveSpan } from 'besiktning/tracing';
+    import { trace, context, propagation, createTracing } from 'besiktning/tracing';
     import * as native from '@opentelemetry/api';
     if (trace !== native.trace || context !== native.context || propagation !== native.propagation) throw Error('API mismatch');
-    const result = withActiveSpan(trace.getTracer('browser'), 'smoke', span => {
+    const { withActiveSpan } = createTracing('browser');
+    const result = withActiveSpan('smoke', span => {
       if (span.isRecording()) throw Error('unexpected provider');
       return 42;
     });
@@ -45,23 +46,27 @@ try {
     assert.equal(typeof require('besiktning/lib/instruments/timer').default, 'function');
     assert.equal(require('besiktning/package.json').name, 'besiktning');
     assert.equal(require('besiktning/tracing').trace, require('@opentelemetry/api').trace);
+    const { withActiveSpan } = require('besiktning/tracing').createTracing('cjs');
+    assert.equal(withActiveSpan('cjs', () => 42), 42);
   `
   ]);
   run(process.execPath, [
     '--input-type=module',
     '-e',
     `
-    import { trace, withActiveSpan } from 'besiktning/tracing';
+    import { trace, withActiveSpan, createTracing } from 'besiktning/tracing';
     import * as native from '@opentelemetry/api';
     if (trace !== native.trace || withActiveSpan(trace.getTracer('esm'), 'esm', () => 42) !== 42) {
       throw Error('native ESM import failed');
     }
+    const { withActiveSpan: bound } = createTracing('esm');
+    if (await bound('async', async () => 42) !== 42) throw Error('ESM factory failed');
   `
   ]);
   writeFileSync(
     path.join(scratch, 'consumer.ts'),
     `
-    import { withActiveSpan, trace, context, type Span, type Context } from 'besiktning/tracing';
+    import { withActiveSpan, createTracing, ROOT_CONTEXT, trace, context, type Span, type Context, type Tracer, type SpanOptions } from 'besiktning/tracing';
     import type { Span as NativeSpan, Context as NativeContext } from '@opentelemetry/api';
     const captured: NativeContext = context.active() satisfies Context;
     const tracer = trace.getTracer('types');
@@ -71,6 +76,19 @@ try {
       return 1;
     }, {}, captured);
     const p: Promise<number> = withActiveSpan(tracer, 'async', async () => n);
+    const { tracer: nativeTracer, withActiveSpan: bound } = createTracing('types', '1.0');
+    const native: Tracer = nativeTracer;
+    const options: SpanOptions = { root: true, links: [{ context: native.startSpan('previous').spanContext() }] };
+    type Equal<A, B> = (<T>() => T extends A ? 1 : 2) extends (<T>() => T extends B ? 1 : 2) ? true : false;
+    const sync = bound('sync', span => { span.setAttribute('count', 1); return 1; }, options, ROOT_CONTEXT);
+    const asyncValue = bound('async', async () => sync);
+    const thenable: PromiseLike<number> = Promise.resolve(1);
+    const assimilated = bound('thenable', () => thenable);
+    const syncType: Equal<typeof sync, number> = true;
+    const asyncType: Equal<typeof asyncValue, Promise<number>> = true;
+    const thenableType: Equal<typeof assimilated, Promise<number>> = true;
+    const nothing = bound('void', () => {});
+    const voidType: Equal<typeof nothing, void> = true;
     void p;
   `
   );

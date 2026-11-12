@@ -1,7 +1,23 @@
-import { context, SpanStatusCode } from '@opentelemetry/api';
+import { context, SpanStatusCode, trace } from '@opentelemetry/api';
 import type { Context, Span, SpanOptions, Tracer } from '@opentelemetry/api';
 
 export * from '@opentelemetry/api';
+
+export interface Tracing {
+  tracer: Tracer;
+  withActiveSpan<T>(name: string, callback: (span: Span) => PromiseLike<T>, options?: SpanOptions, parent?: Context): Promise<T>;
+  withActiveSpan<T>(name: string, callback: (span: Span) => T, options?: SpanOptions, parent?: Context): T;
+}
+
+export function createTracing(scopeName: string, version?: string): Tracing {
+  const tracer = trace.getTracer(scopeName, version);
+  function boundWithActiveSpan<T>(name: string, callback: (span: Span) => PromiseLike<T>, options?: SpanOptions, parent?: Context): Promise<T>;
+  function boundWithActiveSpan<T>(name: string, callback: (span: Span) => T, options?: SpanOptions, parent?: Context): T;
+  function boundWithActiveSpan(name: string, callback: (span: Span) => unknown, options?: SpanOptions, parent?: Context): unknown {
+    return withActiveSpan(tracer, name, callback, options, parent);
+  }
+  return { tracer, withActiveSpan: boundWithActiveSpan };
+}
 
 function recordFailure(span: Span, error: unknown): void {
   if (error instanceof Error || typeof error === 'string') {

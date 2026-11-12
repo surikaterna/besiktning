@@ -20,33 +20,58 @@ $ npm install slf
 
 `besiktning/tracing` is a browser-safe facade over `@opentelemetry/api`. It
 re-exports the native API (including `Span`, `Context`, `trace`, `context` and
-`propagation`) and adds `withActiveSpan`. It does not load the metrics entry,
-register a provider, install a context manager/propagator, or configure an SDK,
+`propagation`) and adds `createTracing` and `withActiveSpan`. It does not load the
+metrics entry, register a provider, install a context manager/propagator, or configure an SDK,
 exporter or endpoint. Those are application responsibilities. With no provider,
 spans are OpenTelemetry no-ops. Async context continuity requires an
 application-installed context manager appropriate to the runtime.
 
 ```typescript
-import { trace, withActiveSpan } from 'besiktning/tracing';
+import { createTracing } from 'besiktning/tracing';
 
-const tracer = trace.getTracer('my-application');
-const value = withActiveSpan(tracer, 'calculate', span => {
+const { tracer, withActiveSpan } = createTracing('lx.commands', '1.0.0');
+const value = withActiveSpan('calculate', span => {
   span.setAttribute('input.count', 3);
   return 42;
 });
-const loaded = await withActiveSpan(tracer, 'load', async span => {
+const loaded = await withActiveSpan('command.submit', async span => {
   return await loadData();
 });
 ```
 
-Signature: `withActiveSpan(tracer, name, callback, options?, parentContext?)`.
+`createTracing(scopeName, version?)` gets the application's native tracer via
+`trace.getTracer` and returns it with a destructuring-safe bound helper:
+`withActiveSpan(name, callback, options?, parentContext?)`. Use a fixed subsystem
+scope (like a logger name), not a tenant/request name. No provider is initialized;
+OpenTelemetry also supports registering the application provider later.
+
 The callback receives the native span. Synchronous values/throws stay
 synchronous; Promises/thenables produce a Promise preserving the resolved value
 or rejection reason (not Promise identity). The helper owns the span and ends
-it once on completion: do not end it inside the callback. Failures set ERROR
+it once on completion: do not end it inside the callback, and return/await all
+work belonging to it. Failures (including thrown/rejected cancellation) set ERROR
 status; Error and string failures are also recorded as exceptions. Other thrown
 values are preserved without inventing exception data. Success leaves status
 unchanged. Options and explicit parent context are native OpenTelemetry types.
+Browser async continuity still depends on the application's context manager;
+the helper does not patch async APIs.
+
+The original explicit-tracer helper remains available, including for injected
+tracers. Native options support links and explicit new roots:
+
+```typescript
+import { ROOT_CONTEXT, withActiveSpan as withExplicitSpan } from 'besiktning/tracing';
+
+const previousSpan = tracer.startSpan('previous');
+const previousSpanContext = previousSpan.spanContext();
+previousSpan.end();
+withExplicitSpan(tracer, 'new-root', span => span.addEvent('started'), {
+  links: [{ context: previousSpanContext }]
+}, ROOT_CONTEXT);
+```
+
+Its signature remains `withActiveSpan(tracer, name, callback, options?, parentContext?)`;
+the bound helper accepts the same native options and context.
 
 For callback/event adapters, use native context capture, binding and propagation;
 there is no package-specific trace model:
