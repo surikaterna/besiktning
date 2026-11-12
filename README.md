@@ -1,6 +1,6 @@
 # besiktning
 
-TS + Decorators to get Metrics with Node and Telegraf
+TS decorators for collecting Node metrics with OpenTelemetry or Telegraf.
 
 ## Install
 
@@ -8,15 +8,36 @@ TS + Decorators to get Metrics with Node and Telegraf
 $ npm install besiktning
 ```
 
-[slf](https://www.npmjs.com/package/slf) is a peer-dependency:
+[slf](https://www.npmjs.com/package/slf) is a required peer dependency:
 
 ```bash
 $ npm install slf
 ```
 
+The OpenTelemetry API is an optional peer dependency. Install it when using `otelFactory`; Telegraf-only consumers do not need it:
+
+```bash
+$ npm install @opentelemetry/api
+```
+
 ## API
 
-Initialize `besiktning`:
+Initialize `besiktning` with the OpenTelemetry metrics API. Configure an SDK `MeterProvider` and exporter in the application before creating the collector.
+
+```typescript
+import { Collector, otelFactory } from 'besiktning';
+
+Collector.set(
+  otelFactory({
+    meterName: 'my-service',
+    prefix: 'my_service'
+  })
+);
+```
+
+The collector maps meters and exception meters to counters, timers to nanosecond histograms, and gauges/runtime samples to gauges. Measurement names and keys form the OTEL metric name (`<prefix>.<measurement>.<key>`), while tags become attributes.
+
+The legacy Telegraf collector remains available:
 
 ```typescript
 import { Collector, telegrafFactory, NodeRuntimeMetrics } from 'besiktning';
@@ -40,15 +61,14 @@ runtimeMetrics.start();
 
 The API provides four method decorators for performing measurements:
 
--   `withExceptionMeter`: counts number of exceptions thrown by the target function
--   `withGauge`: collects return value of the target function
--   `withMeter`: counts number of invocations of the target function
--   `withTimer`: collects execution time of the target function
+- `withExceptionMeter`: counts number of exceptions thrown by the target function
+- `withGauge`: collects return value of the target function
+- `withMeter`: counts number of invocations of the target function
+- `withTimer`: collects execution time of the target function
 
 The decorators work with regular functions as well.
 
 Each decorator accepts an object with structure based on the data model of InfluxDB:
-
 
 ```typescript
 type FieldValue = NonNullable<number | bigint | string | boolean>;

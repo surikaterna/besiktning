@@ -9,5 +9,6 @@ describe('index', function () {
     expect(besiktning.withExceptionMeter).to.exist;
     expect(besiktning.Collector).to.exist;
     expect(besiktning.telegrafFactory).to.exist;
+    expect(besiktning.otelFactory).to.exist;
   });
 });
