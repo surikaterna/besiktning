@@ -1,6 +1,6 @@
 {
   "name": "besiktning",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -15,6 +15,7 @@
   "author": "Surikat AB",
   "license": "MIT",
   "devDependencies": {
+    "@opentelemetry/api": "^1.9.1",
     "@types/node": "^24.12.0",
     "@types/chai": "^5.2.3",
     "@types/mocha": "^10.0.10",
