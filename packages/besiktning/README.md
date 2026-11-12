@@ -18,6 +18,11 @@ $ npm install slf
 
 ### Tracing (Node and browsers)
 
+Developer guides: [API and lifetimes](docs/tracing-api.md),
+[application startup and validation](docs/tracing-startup.md), and
+[transport contracts and privacy](docs/tracing-transports.md).
+The separate [Lynx coverage snapshot](docs/lynx-tracing-coverage.md) is not a facade guarantee.
+
 `besiktning/tracing` is a browser-safe facade over `@opentelemetry/api`. It
 re-exports the native API (including `Span`, `Context`, `trace`, `context` and
 `propagation`) and adds `createTracing` and `withActiveSpan`. It does not load the
