@@ -8,9 +8,9 @@
   "scripts": {
     "compile": "turbo compile",
     "compile.watch": "turbo compile.watch",
-    "test": "turbo test",
+    "test": "turbo test:unit test:artifact",
     "test.watch": "turbo test.watch",
-    "prepublishOnly": "npm test && npm run compile"
+    "prepublishOnly": "npm test"
   },
   "author": "Surikat AB",
   "license": "MIT",

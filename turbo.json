@@ -4,7 +4,17 @@
     "compile": {
       "outputs": ["lib/**"]
     },
-    "test": {
+    "besiktning-noderuntime#compile": {
+      "dependsOn": ["besiktning#compile"],
+      "outputs": ["lib/**"]
+    },
+    "test:unit": {
+      "dependsOn": ["compile"],
+      "outputs": []
+    },
+    "test:artifact": {
+      "dependsOn": ["compile"],
+      "cache": false,
       "outputs": []
     },
     "test.watch": {
