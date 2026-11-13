@@ -6,9 +6,10 @@ provides instrumentation only; existing Telegraf/Influx metrics need no migratio
 ## Startup contract
 
 1. Select mutually compatible API, SDK, context-manager, instrumentation and
-   exporter releases for the runtime. This candidate pins API 1.9.0; SDK packages
-   are not runtime dependencies supplied by the facade. Do not infer compatibility
-   from matching major numbers across OTel's stable/experimental packages.
+   exporter releases for the runtime. The facade declares `@opentelemetry/api` as a
+   `^1.9.1` peer dependency shared with the application; SDK packages are not runtime
+   dependencies supplied by the facade. Do not infer compatibility from matching
+   major numbers across OTel's stable/experimental packages.
 2. Initialize one application-owned provider before business imports when native
    instrumentation patches dependencies. Bundled applications may need explicit
    transport instrumentation instead; avoid duplicate auto/manual spans.
