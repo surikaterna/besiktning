@@ -31,6 +31,16 @@ exporter or endpoint. Those are application responsibilities. With no provider,
 spans are OpenTelemetry no-ops. Async context continuity requires an
 application-installed context manager appropriate to the runtime.
 
+`@opentelemetry/api` is a peer dependency shared with the application's telemetry
+bootstrap. Use an API version that satisfies both besiktning and the application's
+SDK; besiktning does not ship its own SDK. Its SDK development dependencies are
+only used by tests.
+
+The peer range is `^1.9.1`, but the host must select a version in the intersection
+with its SDK's API constraints. For example, the SDK 2.12.1 used by this package's
+tests requires API `<1.10.0`; these tests use API 1.9.1. The facade's peer range
+does not promise that every API 1.x release works with that SDK.
+
 ```typescript
 import { createTracing } from 'besiktning/tracing';
 

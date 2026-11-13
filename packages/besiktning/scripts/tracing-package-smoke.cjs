@@ -7,17 +7,26 @@ const vm = require('node:vm');
 const { buildSync } = require('esbuild');
 
 const packageDir = path.resolve(__dirname, '..');
+const { devDependencies } = require('../package.json');
 const scratch = mkdtempSync(path.join(tmpdir(), 'besiktning-tracing-'));
 const run = (command, args, cwd = scratch) => execFileSync(command, args, { cwd, encoding: 'utf8' });
 
 try {
   const packed = JSON.parse(run('npm', ['pack', '--json', '--ignore-scripts', '--pack-destination', scratch], packageDir));
   writeFileSync(path.join(scratch, 'package.json'), JSON.stringify({ private: true }));
-  run('npm', ['install', '--ignore-scripts', '--omit=dev', '--no-audit', '--no-fund', path.join(scratch, packed[0].filename)]);
-  assert.deepEqual(
-    readFileSync(path.join(scratch, 'node_modules/besiktning/LICENSE')),
-    readFileSync(path.join(packageDir, '../../LICENSE'))
-  );
+  run('npm', [
+    'install',
+    '--ignore-scripts',
+    '--omit=dev',
+    '--no-audit',
+    '--no-fund',
+    path.join(scratch, packed[0].filename),
+    '@opentelemetry/api@1.9.1',
+    ...['context-async-hooks', 'core', 'sdk-trace-base'].map((name) => `@opentelemetry/${name}@${devDependencies[`@opentelemetry/${name}`]}`)
+  ]);
+  copyFileSync(path.join(__dirname, 'tracing-peer-interop.cjs'), path.join(scratch, 'peer-interop.cjs'));
+  process.stdout.write(run(process.execPath, ['peer-interop.cjs']));
+  assert.deepEqual(readFileSync(path.join(scratch, 'node_modules/besiktning/LICENSE')), readFileSync(path.join(packageDir, '../../LICENSE')));
   const smoke = `
     import { trace, context, propagation, createTracing } from 'besiktning/tracing';
     import * as native from '@opentelemetry/api';
