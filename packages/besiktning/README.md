@@ -31,6 +31,11 @@ exporter or endpoint. Those are application responsibilities. With no provider,
 spans are OpenTelemetry no-ops. Async context continuity requires an
 application-installed context manager appropriate to the runtime.
 
+`@opentelemetry/api` is a peer dependency shared with the application's telemetry
+bootstrap. Use an API version that satisfies both besiktning and the application's
+SDK; besiktning does not ship its own SDK. Its SDK development dependencies are
+only used by tests.
+
 ```typescript
 import { createTracing } from 'besiktning/tracing';
 

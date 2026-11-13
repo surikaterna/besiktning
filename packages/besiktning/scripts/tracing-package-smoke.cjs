@@ -13,7 +13,10 @@ const run = (command, args, cwd = scratch) => execFileSync(command, args, { cwd,
 try {
   const packed = JSON.parse(run('npm', ['pack', '--json', '--ignore-scripts', '--pack-destination', scratch], packageDir));
   writeFileSync(path.join(scratch, 'package.json'), JSON.stringify({ private: true }));
-  run('npm', ['install', '--ignore-scripts', '--omit=dev', '--no-audit', '--no-fund', path.join(scratch, packed[0].filename)]);
+  run('npm', [
+    'install', '--ignore-scripts', '--omit=dev', '--no-audit', '--no-fund',
+    path.join(scratch, packed[0].filename), '@opentelemetry/api@1.9.1'
+  ]);
   assert.deepEqual(
     readFileSync(path.join(scratch, 'node_modules/besiktning/LICENSE')),
     readFileSync(path.join(packageDir, '../../LICENSE'))
