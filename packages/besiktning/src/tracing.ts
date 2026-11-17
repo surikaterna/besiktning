@@ -1,12 +1,28 @@
 import { context, SpanStatusCode, trace } from '@opentelemetry/api';
 import type { Context, Span, SpanOptions, Tracer } from '@opentelemetry/api';
+import { withOperation } from './operation';
+import type { OperationOutcome } from './operation';
 
 export * from '@opentelemetry/api';
+export { withOperation } from './operation';
+export type { OperationOutcome } from './operation';
 
 export interface Tracing {
   tracer: Tracer;
   withActiveSpan<T>(name: string, callback: (span: Span) => PromiseLike<T>, options?: SpanOptions, parent?: Context): Promise<T>;
   withActiveSpan<T>(name: string, callback: (span: Span) => T, options?: SpanOptions, parent?: Context): T;
+  withOperation<T>(
+    name: string,
+    work: () => PromiseLike<T>,
+    classifyResult?: (value: T) => OperationOutcome | undefined,
+    options?: { classifyError?: (reason: unknown) => 'error' | 'cancelled' }
+  ): Promise<T>;
+  withOperation<T>(
+    name: string,
+    work: () => T,
+    classifyResult?: (value: T) => OperationOutcome | undefined,
+    options?: { classifyError?: (reason: unknown) => 'error' | 'cancelled' }
+  ): T;
 }
 
 export function createTracing(scopeName: string, version?: string): Tracing {
@@ -16,7 +32,27 @@ export function createTracing(scopeName: string, version?: string): Tracing {
   function boundWithActiveSpan(name: string, callback: (span: Span) => unknown, options?: SpanOptions, parent?: Context): unknown {
     return withActiveSpan(tracer, name, callback, options, parent);
   }
-  return { tracer, withActiveSpan: boundWithActiveSpan };
+  function boundWithOperation<T>(
+    name: string,
+    work: () => PromiseLike<T>,
+    classifyResult?: (value: T) => OperationOutcome | undefined,
+    options?: { classifyError?: (reason: unknown) => 'error' | 'cancelled' }
+  ): Promise<T>;
+  function boundWithOperation<T>(
+    name: string,
+    work: () => T,
+    classifyResult?: (value: T) => OperationOutcome | undefined,
+    options?: { classifyError?: (reason: unknown) => 'error' | 'cancelled' }
+  ): T;
+  function boundWithOperation(
+    name: string,
+    work: () => unknown,
+    classifyResult?: (value: never) => OperationOutcome | undefined,
+    options?: { classifyError?: (reason: unknown) => 'error' | 'cancelled' }
+  ): unknown {
+    return withOperation(tracer, name, work, classifyResult as ((value: unknown) => OperationOutcome | undefined) | undefined, options);
+  }
+  return { tracer, withActiveSpan: boundWithActiveSpan, withOperation: boundWithOperation };
 }
 
 function recordFailure(span: Span, error: unknown): void {

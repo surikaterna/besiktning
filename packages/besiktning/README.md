@@ -25,7 +25,7 @@ The separate [Lynx coverage snapshot](docs/lynx-tracing-coverage.md) is not a fa
 
 `besiktning/tracing` is a browser-safe facade over `@opentelemetry/api`. It
 re-exports the native API (including `Span`, `Context`, `trace`, `context` and
-`propagation`) and adds `createTracing` and `withActiveSpan`. It does not load the
+`propagation`) and adds `createTracing`, `withActiveSpan` and `withOperation`. It does not load the
 metrics entry, register a provider, install a context manager/propagator, or configure an SDK,
 exporter or endpoint. Those are application responsibilities. With no provider,
 spans are OpenTelemetry no-ops. Async context continuity requires an
@@ -35,6 +35,15 @@ application-installed context manager appropriate to the runtime.
 bootstrap. Use an API version that satisfies both besiktning and the application's
 SDK; besiktning does not ship its own SDK. Its SDK development dependencies are
 only used by tests.
+
+`withOperation(name, work, classifyResult?, options?)` measures an operation.
+Pass a callback, not an already-running Promise. Work starts immediately under a
+span and retains its synchronous or asynchronous settlement. The helper records
+only a bounded `operation.outcome`,
+never raw results or exceptions. Fulfillment without a classifier has no outcome
+label; rejection defaults to `error`/ERROR. See
+[operation semantics](docs/tracing-api.md#privacy-safe-operations) for result
+identity, lifetime, classifiers and cancellation policy.
 
 The peer range is `^1.9.1`, but the host must select a version in the intersection
 with its SDK's API constraints. For example, the SDK 2.12.1 used by this package's
