@@ -31,7 +31,8 @@ try {
     import { trace, context, propagation, createTracing } from 'besiktning/tracing';
     import * as native from '@opentelemetry/api';
     if (trace !== native.trace || context !== native.context || propagation !== native.propagation) throw Error('API mismatch');
-    const { withActiveSpan } = createTracing('browser');
+    const { withActiveSpan, withOperation } = createTracing('browser');
+    if (withOperation('operation', () => 42, () => 'success') !== 42) throw Error('operation mismatch');
     const result = withActiveSpan('smoke', span => {
       if (span.isRecording()) throw Error('unexpected provider');
       return 42;
@@ -61,25 +62,29 @@ try {
     assert.equal(require('besiktning/tracing').trace, require('@opentelemetry/api').trace);
     const { withActiveSpan } = require('besiktning/tracing').createTracing('cjs');
     assert.equal(withActiveSpan('cjs', () => 42), 42);
+    assert.equal(require('besiktning/tracing').withOperation(require('@opentelemetry/api').trace.getTracer('cjs'), 'operation', () => 42), 42);
+    assert.equal(require('besiktning/tracing').createTracing('cjs').withOperation('operation', () => 42), 42);
   `
   ]);
   run(process.execPath, [
     '--input-type=module',
     '-e',
     `
-    import { trace, withActiveSpan, createTracing } from 'besiktning/tracing';
+    import { trace, withActiveSpan, withOperation, createTracing } from 'besiktning/tracing';
     import * as native from '@opentelemetry/api';
     if (trace !== native.trace || withActiveSpan(trace.getTracer('esm'), 'esm', () => 42) !== 42) {
       throw Error('native ESM import failed');
     }
     const { withActiveSpan: bound } = createTracing('esm');
     if (await bound('async', async () => 42) !== 42) throw Error('ESM factory failed');
+    if (withOperation(trace.getTracer('esm'), 'operation', () => 42) !== 42) throw Error('ESM operation failed');
+    if (await createTracing('esm').withOperation('operation', async () => 42) !== 42) throw Error('ESM bound operation failed');
   `
   ]);
   writeFileSync(
     path.join(scratch, 'consumer.ts'),
     `
-    import { withActiveSpan, createTracing, ROOT_CONTEXT, trace, context, type Span, type Context, type Tracer, type SpanOptions } from 'besiktning/tracing';
+    import { withActiveSpan, withOperation, createTracing, ROOT_CONTEXT, trace, context, type Span, type Context, type Tracer, type SpanOptions, type OperationOutcome } from 'besiktning/tracing';
     import type { Span as NativeSpan, Context as NativeContext } from '@opentelemetry/api';
     const captured: NativeContext = context.active() satisfies Context;
     const tracer = trace.getTracer('types');
@@ -102,6 +107,23 @@ try {
     const thenableType: Equal<typeof assimilated, Promise<number>> = true;
     const nothing = bound('void', () => {});
     const voidType: Equal<typeof nothing, void> = true;
+    const operations = createTracing('operations');
+    const object = operations.withOperation('sync', () => ({ valid: false }), value => value.valid ? 'success' : 'failure');
+    const objectType: Equal<typeof object, { valid: boolean }> = true;
+    const promise = operations.withOperation('async', async () => ({ valid: true }), value => value.valid ? 'success' : undefined);
+    const promiseType: Equal<typeof promise, Promise<{ valid: boolean }>> = true;
+    const adopted = operations.withOperation('thenable', () => thenable, value => value === 1 ? 'success' : 'failure');
+    const adoptedType: Equal<typeof adopted, Promise<number>> = true;
+    const explicit: number = withOperation(tracer, 'explicit', () => 1, value => value === 1 ? 'success' : undefined);
+    const explicitAsync: Promise<number> = withOperation(tracer, 'explicitAsync', async () => 1, value => value === 1 ? 'success' : undefined);
+    const outcome: OperationOutcome = 'cancelled';
+    operations.withOperation('cancel', () => {}, undefined, { classifyError: reason => reason === outcome ? 'cancelled' : 'error' });
+    // @ts-expect-error Work must be invoked under the span, not already running.
+    operations.withOperation('running', Promise.resolve(1));
+    // @ts-expect-error Only the bounded vocabulary is accepted.
+    operations.withOperation('invalid', () => 1, () => 'private-label');
+    // @ts-expect-error Error classification cannot assign a business outcome.
+    operations.withOperation('invalid-error', () => 1, undefined, { classifyError: () => 'success' });
     void p;
   `
   );

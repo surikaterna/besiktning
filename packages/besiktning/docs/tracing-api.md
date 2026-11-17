@@ -1,8 +1,9 @@
 # Tracing API and lifetimes
 
-This documents the PR 19 candidate (`bb96a23`), intended for besiktning 0.4.0;
-publication and downstream clean-install validation are pending. Do not assume the
-currently published package has these exports. Source contract:
+The `withOperation` addition documents an unpublished candidate, still carrying
+source version 0.4.1; it is not the registry's 0.4.1 bytes. A future 0.5.0 minor
+release is recommended, pending version/publication authorization. Do not assume
+the currently published package has this addition. Source contract:
 [`src/tracing.ts`](../src/tracing.ts).
 
 ## Ordinary synchronous and Promise work
@@ -21,7 +22,7 @@ const saved = await withActiveSpan('order.save', async () => {
 withExplicitSpan(tracer, 'order.inspect', () => saved);
 ```
 
-`createTracing(name, version?)` returns `{ tracer, withActiveSpan }`. Its bound
+`createTracing(name, version?)` returns `{ tracer, withActiveSpan, withOperation }`. Its bound
 helper accepts `(name, callback, options?, parent?)`; the retained explicit helper
 accepts `(tracer, name, callback, options?, parent?)`. Options, `Context`, spans
 and tracers are native OpenTelemetry types re-exported by `besiktning/tracing`.
@@ -36,6 +37,55 @@ context values. Different tracers can contribute children to the same tree.
 Service identity belongs to the application's SDK resource. The factory only
 gets a tracer: it registers nothing. No provider is harmless/no-op; a tracer
 obtained before application provider registration can use that provider later.
+
+## Privacy-safe operations
+
+```typescript
+import { createTracing, withOperation, type OperationOutcome } from 'besiktning/tracing';
+
+const operations = createTracing('example.orders');
+const result = operations.withOperation(
+    'order.validate',
+    () => ({ valid: false }),
+    (value): OperationOutcome => value.valid ? 'success' : 'failure'
+);
+withOperation(operations.tracer, 'order.inspect', () => result);
+```
+
+The bound signature is `withOperation(name, work, classifyResult?, options?)`;
+the explicit helper prepends a native `tracer`. `work` is a zero-argument callback
+invoked **immediately under the active span**, not an already-running Promise.
+Synchronous returns/throws remain synchronous. PromiseLike work returns a Promise
+preserving the resolved value's identity or original opaque rejection reason;
+Promise identity is not promised. Return all work belonging to the operation.
+
+The optional `(value: T) => OperationOutcome | undefined` classifier runs once on
+fulfillment, before ending. The only annotation is `operation.outcome`, validated
+without coercion against `'success' | 'failure' | 'error' | 'cancelled'`.
+No classifier, `undefined`, invalid output or a thrown result classifier means
+**no outcome annotation**, not inferred business success. No result properties
+(such as `valid`, `success` or `status`) are guessed. `success`, `failure` and
+`cancelled` leave span status UNSET; only `error` sets technical ERROR.
+
+Throws/rejections default to `error` without inspecting their reason. The fourth
+argument accepts only `{ classifyError?: (reason: unknown) => 'error' | 'cancelled' }`.
+Applications can supply an explicit cancellation policy, for example
+`{ classifyError: () => signal.aborted ? 'cancelled' : 'error' }`; no error name,
+message or AbortError convention is inferred. Invalid/throwing error classifiers
+fall back to `error`. Classifier failures never replace business settlement.
+
+The helper owns one `span.end()` attempt after actual settlement and classification,
+not at a cancellation request. Annotation/end failures cannot replace the business
+result or reason. It records no exception events, raw results, errors, messages,
+stacks or logs. Use fixed, non-sensitive operation names; application classifiers
+and exporters remain application-owned. Tracer/span creation and context-manager
+failures are outside this annotation-failure guarantee.
+
+No SDK, provider or context manager is installed. With a stack-based browser
+manager, synchronous scope and explicitly bound callbacks work; native `await`
+does not automatically preserve context. This helper adds no async-context patch.
+Native span options/explicit parenting remain available through `withActiveSpan`
+or native tracer APIs; operation options deliberately only classify errors.
 
 ## Explicit parent versus a linked new trace
 
@@ -112,10 +162,11 @@ when they run. Explicit parenting alone does not repair every nested async API.
 
 ## Failure semantics
 
-The helper marks thrown/rejected values ERROR, including cancellation; Error and
+`withActiveSpan` retains its existing policy: thrown/rejected values are ERROR,
+including cancellation; Error and
 string failures are recorded **raw** as exception events. Application export
 sanitization is required. This is not a statement that all existing business logs
 are exposed or sanitized. Expected business results (for example an invalid GMR
 with successful HTTP response) need not be span errors. Define cancellation and
-business-outcome classification explicitly; use native spans if the helper's
+business-outcome classification explicitly; use `withOperation` or native spans if this
 failure policy does not fit. Do not change the helper to encode application rules.
