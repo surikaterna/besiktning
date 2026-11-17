@@ -1,9 +1,7 @@
 # Tracing API and lifetimes
 
-The `withOperation` addition documents an unpublished candidate, still carrying
-source version 0.4.1; it is not the registry's 0.4.1 bytes. A future 0.5.0 minor
-release is recommended, pending version/publication authorization. Do not assume
-the currently published package has this addition. Source contract:
+`withOperation` is introduced in the next minor release and is not yet published.
+The facade leaves SDK setup to the application. Source contract:
 [`src/tracing.ts`](../src/tracing.ts).
 
 ## Ordinary synchronous and Promise work

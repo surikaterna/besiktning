@@ -36,13 +36,14 @@ bootstrap. Use an API version that satisfies both besiktning and the application
 SDK; besiktning does not ship its own SDK. Its SDK development dependencies are
 only used by tests.
 
-The unpublished `withOperation(name, work, classifyResult?, options?)` addition
-invokes work immediately under a span, preserves sync/async business settlement,
-and annotates only a validated `operation.outcome`. Fulfillment without a classifier
-has no outcome label; rejection defaults to `error`/ERROR. It never records raw
-exceptions or results. See [operation semantics](docs/tracing-api.md#privacy-safe-operations)
-for bounded classifiers and cancellation policy. Source remains 0.4.1; this candidate
-is not registry 0.4.1. A future 0.5.0 minor is recommended, not yet authorized.
+`withOperation(name, work, classifyResult?, options?)` is introduced in the next
+minor release; it is not yet published. Pass a callback, not an already-running
+Promise. Work starts immediately under a span and retains its synchronous or
+asynchronous settlement. The helper records only a bounded `operation.outcome`,
+never raw results or exceptions. Fulfillment without a classifier has no outcome
+label; rejection defaults to `error`/ERROR. See
+[operation semantics](docs/tracing-api.md#privacy-safe-operations) for result
+identity, lifetime, classifiers and cancellation policy.
 
 The peer range is `^1.9.1`, but the host must select a version in the intersection
 with its SDK's API constraints. For example, the SDK 2.12.1 used by this package's
