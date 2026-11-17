@@ -1,7 +1,8 @@
 # Tracing API and lifetimes
 
-`withOperation` is introduced in the next minor release and is not yet published.
-The facade leaves SDK setup to the application. Source contract:
+`besiktning/tracing` provides native tracing APIs and helpers for spans and
+privacy-safe operations. The facade leaves SDK setup to the application. Source
+contract:
 [`src/tracing.ts`](../src/tracing.ts).
 
 ## Ordinary synchronous and Promise work

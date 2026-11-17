@@ -36,10 +36,10 @@ bootstrap. Use an API version that satisfies both besiktning and the application
 SDK; besiktning does not ship its own SDK. Its SDK development dependencies are
 only used by tests.
 
-`withOperation(name, work, classifyResult?, options?)` is introduced in the next
-minor release; it is not yet published. Pass a callback, not an already-running
-Promise. Work starts immediately under a span and retains its synchronous or
-asynchronous settlement. The helper records only a bounded `operation.outcome`,
+`withOperation(name, work, classifyResult?, options?)` measures an operation.
+Pass a callback, not an already-running Promise. Work starts immediately under a
+span and retains its synchronous or asynchronous settlement. The helper records
+only a bounded `operation.outcome`,
 never raw results or exceptions. Fulfillment without a classifier has no outcome
 label; rejection defaults to `error`/ERROR. See
 [operation semantics](docs/tracing-api.md#privacy-safe-operations) for result
